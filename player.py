@@ -23,6 +23,7 @@ class Hero(pygame.sprite.Sprite):
         self.moving_left = False
         self.moving_down = False
         self.moving_up = False
+        self.side = 'Right'
 
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
