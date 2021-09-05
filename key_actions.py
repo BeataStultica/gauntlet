@@ -2,16 +2,35 @@ import sys
 import pygame
 
 
+def change_sprite(side):
+    coords = {'left': (450, 25, 48, 48), 'right': (
+        450, 75, 48, 48), 'up': (450, 50, 48, 48), 'down': (475, 0, 48, 48)}
+    rect = pygame.Rect(coords[side])
+    sheet = pygame.image.load('assets/elf.png').convert()
+    image = pygame.Surface((24, 24)).convert()
+    image.blit(sheet, (0, 0), rect)
+    transColor = image.get_at((2, 2))
+    image.set_colorkey(transColor)
+    image = pygame.transform.scale(image, (48, 48))
+    return image
+
+
 def check_keydown_events(event, ai_settings, screen, player):
     # for event in pygame.event.get():
+    sheet = pygame.image.load('assets/elf.png').convert()
+
     if event.key == pygame.K_RIGHT:
         player.moving_right = True
+        player.image = change_sprite('right')
     elif event.key == pygame.K_LEFT:
         player.moving_left = True
+        player.image = change_sprite('left')
     elif event.key == pygame.K_UP:
         player.moving_up = True
+        player.image = change_sprite('up')
     elif event.key == pygame.K_DOWN:
         player.moving_down = True
+        player.image = change_sprite('down')
 
 
 def keyup(event, player):
