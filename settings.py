@@ -5,3 +5,6 @@ class Settings:
         self.bg_color = (225, 100, 225)
         self.speed_factor = 1.5
         self.arrow_speed_factor = 3
+        self.arrow_width = 16
+        self.arrow_height = 16
+        self.arrow_allowed = 1
