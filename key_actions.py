@@ -195,12 +195,18 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls)
             if maps.tilemap1[row][column] == 1:
                 newall = Wall(ai_settings, screen, maps, column, row)
                 walls.add(newall)
+                if row != len(maps.tilemap1)-1 and maps.tilemap1[row+1][column] == 0:
+                    screen.blit(maps.textures_walls,
+                                (column*20, row*20), (0, 0, 20, 20))
+                else:
+                    screen.blit(maps.textures_walls,
+                                (column*20, row*20), (22, 0, 20, 20))
             else:
                 screen.blit(maps.textures_floor,
                             (column*20, row*20), (0, 0, 20, 20))
     # screen.fill(ai_settings.bg_color)
     walls.update()
-    walls.draw(screen)
+    #walls.draw(screen)
     all_sprites.update()
     all_sprites.draw(screen)
     update_arrows(arrows, ai_settings)
