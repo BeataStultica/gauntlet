@@ -27,6 +27,8 @@ class Hero(pygame.sprite.Sprite):
         self.moving_up = False
         self.speed_factor_collise = [1, 1, 1, 1]  # left right, top, bottom
         self.side = 'right'
+        self.atk = 10
+        self.hp = 1000
 
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:

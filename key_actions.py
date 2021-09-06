@@ -209,13 +209,18 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn):
                             (column*40, row*40), (0, 0, 40, 40))
 
 
-def wall_hit(player, walls):
+def object_hit(player, walls, mobs_spawn, mobs):
     hits = pygame.sprite.spritecollide(player, walls, False)
+    hits_spawn = pygame.sprite.spritecollide(player, mobs_spawn, False)
+    mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
+    for i in mobs_hit:
+        i.kill()
+        player.hp -= i.atk
     l_coin = 0
     r_coin = 0
     t_coin = 0
     b_coin = 0
-    for i in hits:
+    for i in hits+hits_spawn:
         if i.rect.top <= player.rect.bottom and player.rect.centery < i.rect.centery:
             b_coin += 1
             player.speed_factor_collise[3] = 0
@@ -247,6 +252,8 @@ def wall_hit(player, walls):
 
 
 def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn):
+    screen.fill([255, 0, 0])
+    # pygame.display.update()
     draw_lvl(walls, ai_settings, screen, maps, mobs_spawn)
     walls.update()
     walls.draw(screen)
@@ -256,10 +263,11 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.draw(screen)
     mobs.update()
     mobs.draw(screen)
-    wall_hit(player, walls)
+    object_hit(player, walls, mobs_spawn, mobs)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
     pygame.sprite.groupcollide(walls, arrows, False, True)
-    draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.8, 10)
+    draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.90, 10)
+    draw_text(screen, str(player.hp), 18, ai_settings.screen_width*0.90, 40)
     pygame.display.flip()

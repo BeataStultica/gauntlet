@@ -27,6 +27,8 @@ class Enemy(pygame.sprite.Sprite):
         self.moving_down = False
         self.moving_up = False
         self.side = 'right'
+        self.hp = 10
+        self.atk = 100
 
     def update(self):
         """

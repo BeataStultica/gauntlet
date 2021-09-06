@@ -18,6 +18,7 @@ class EnemySpawn(pygame.sprite.Sprite):
         self.rect.y = row*40
         self.x = float(self.rect.centerx)
         self.y = float(self.rect.centery)
+        self.hp = 40
 
     def update(self):
         """
