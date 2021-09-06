@@ -210,6 +210,8 @@ def object_hit(player, walls, mobs_spawn, mobs):
     for i in mobs_hit:
         i.kill()
         player.hp -= i.atk
+        if player.hp <= 0:
+            player.kill()
     l_coin = 0
     r_coin = 0
     t_coin = 0
@@ -268,6 +270,15 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     arrows.update()
     arrows.draw(screen)
     pygame.sprite.groupcollide(walls, arrows, False, True)
+    damaged_mobs = pygame.sprite.groupcollide(mobs, arrows, False, True)
+    for i in damaged_mobs:
+        i.hp -= player.atk
+        if i.hp <= 0:
+            i.kill()
+            player.score += i.cost
     draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.90, 10)
-    draw_text(screen, str(player.hp), 18, ai_settings.screen_width*0.90, 40)
+    draw_text(screen, 'HP: '+str(player.hp), 18,
+              ai_settings.screen_width*0.90, 40)
+    draw_text(screen, 'SCORE: '+str(player.score),
+              18, ai_settings.screen_width*0.90, 70)
     pygame.display.flip()

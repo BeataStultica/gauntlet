@@ -29,8 +29,9 @@ class Enemy(pygame.sprite.Sprite):
         self.moving_up = False
         self.side = 2
         self.hp = 10
-        self.atk = 100
+        self.atk = 200
         self.speed = 1
+        self.cost = 10
 
     def update(self):
         posy = int(self.rect.centery/self.block_size)

@@ -29,6 +29,7 @@ class Hero(pygame.sprite.Sprite):
         self.side = 'right'
         self.atk = 10
         self.hp = 1000
+        self.score = 0
 
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
