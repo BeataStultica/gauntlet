@@ -30,24 +30,31 @@ class Enemy(pygame.sprite.Sprite):
         self.side = 2
         self.hp = 10
         self.atk = 100
-        self.speed = 2
+        self.speed = 1
 
     def update(self):
-        a = random.randint(1, 4)
-        posy = int(self.rect.centery/self.block_size)-1
-        posx = int(self.rect.centerx/self.block_size)-1
-        if a == 1:
+        posy = int(self.rect.centery/self.block_size)
+        posx = int(self.rect.centerx/self.block_size)
+        if self.side == 1:
             if self.level[posy][posx+1] == 0:
                 self.x += self.speed
-        elif a == 2:
+            else:
+                self.side = random.choice([2, 3, 4])
+        elif self.side == 2:
             if self.level[posy][posx-1] == 0:
                 self.x -= self.speed
-        elif a == 3:
+            else:
+                self.side = random.choice([1, 3, 4])
+        elif self.side == 3:
             if self.level[posy+1][posx] == 0:
                 self.y += self.speed
+            else:
+                self.side = random.choice([2, 1, 4])
         else:
             if self.level[posy-1][posx] == 0:
                 self.y -= self.speed
+            else:
+                self.side = random.choice([2, 3, 1])
         self.rect.centerx = self.x
         self.rect.centery = self.y
 

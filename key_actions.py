@@ -256,7 +256,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.update()
     mobs_spawn.draw(screen)
     for i in mobs_spawn:
-        i.timer -= 2
+        i.timer -= 10
         if i.timer == 0:
             i.timer = 1000
 
