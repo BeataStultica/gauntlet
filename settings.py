@@ -7,4 +7,4 @@ class Settings:
         self.arrow_speed_factor = 3
         self.arrow_width = 16
         self.arrow_height = 16
-        self.arrow_allowed = 1
+        self.arrow_allowed = 3

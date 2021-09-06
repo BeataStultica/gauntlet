@@ -2,6 +2,7 @@ import sys
 import pygame
 from arrow import Arrow
 from wall import Wall
+from enemy_spawn import EnemySpawn
 
 
 def change_sprite(side):
@@ -185,7 +186,7 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls):
+def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn):
     for wall in walls:
         walls.remove(wall)
         wall.kill()
@@ -195,20 +196,15 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls)
             if maps.tilemap1[row][column] == 1:
                 newall = Wall(ai_settings, screen, maps, column, row)
                 walls.add(newall)
-                if row != len(maps.tilemap1)-1 and maps.tilemap1[row+1][column] == 0:
-                    screen.blit(maps.textures_walls,
-                                (column*20, row*20), (0, 0, 20, 20))
-                else:
-                    screen.blit(maps.textures_walls,
-                                (column*20, row*20), (22, 0, 20, 20))
+            if maps.tilemap1[row][column] == 3:
+                spawn = EnemySpawn(ai_settings, screen, maps, column, row)
+                mobs_spawn.add(spawn)
             else:
                 screen.blit(maps.textures_floor,
                             (column*20, row*20), (0, 0, 20, 20))
-    # screen.fill(ai_settings.bg_color)
-    walls.update()
-    # walls.draw(screen)
-    all_sprites.update()
-    all_sprites.draw(screen)
+
+
+def wall_hit(player, walls):
     hits = pygame.sprite.spritecollide(player, walls, False)
     l_coin = 0
     r_coin = 0
@@ -243,8 +239,22 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls)
         player.speed_factor_collise[2] = 1
     if b_coin == 0:
         player.speed_factor_collise[3] = 1
+
+
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn):
+    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn)
+    walls.update()
+    walls.draw(screen)
+    all_sprites.update()
+    all_sprites.draw(screen)
+    mobs_spawn.update()
+    mobs_spawn.draw(screen)
+    mobs.update()
+    mobs.draw(screen)
+    wall_hit(player, walls)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
+    pygame.sprite.groupcollide(walls, arrows, False, True)
     draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.8, 10)
     pygame.display.flip()

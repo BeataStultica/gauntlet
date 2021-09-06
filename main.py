@@ -6,6 +6,8 @@ from player import Hero
 from settings import Settings
 import key_actions as k_a
 from map import Map
+from enemy import Enemy
+from enemy_spawn import EnemySpawn
 
 
 class GauntletGame:
@@ -19,8 +21,12 @@ class GauntletGame:
         self.screen = pygame.display.set_mode(
             (self.settings.screen_width, self.settings.screen_height))
         self.player = Hero(self.settings, self.screen)
-        self.maps = Map()
         self.all_sprites.add(self.player)
+        self.maps = Map()
+        self.mobs = pygame.sprite.Group()
+        self.mob = Enemy(self.settings, self.screen, self.maps)
+        self.mobs.add(self.mob)
+        self.mobs_spawns = pygame.sprite.Group()
         pygame.display.set_caption("Gauntlet")
 
     def run_game(self):
@@ -29,7 +35,7 @@ class GauntletGame:
             k_a.check_event(self.settings, self.screen,
                             self.player, self.arrows)
             k_a.update_screen(self.settings, self.screen,
-                              self.player, self.all_sprites, self.arrows, self.maps, self.walls)
+                              self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns)
 
 
 if __name__ == '__main__':
