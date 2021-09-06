@@ -3,6 +3,7 @@ import pygame
 from arrow import Arrow
 from wall import Wall
 from enemy_spawn import EnemySpawn
+from enemy import Enemy
 
 
 def change_sprite(side):
@@ -82,22 +83,6 @@ def check_keydown_events(event, ai_settings, screen, player, arrows):
 
 def keyup(event, player):
     keys = pygame.key.get_pressed()
-    # for event in pygame.event.get():
-    '''
-    if (event.key == pygame.K_RIGHT and event.key == pygame.K_DOWN):
-        player.moving_right = False
-        player.moving_down = False
-
-    elif (event.key == pygame.K_RIGHT and event.key == pygame.K_UP):
-        player.moving_right = False
-        player.moving_up = False
-    elif (event.key == pygame.K_LEFT and event.key == pygame.K_DOWN):
-        player.moving_left = False
-        player.moving_down = False
-    elif (event.key == pygame.K_LEFT and event.key == pygame.K_UP):
-        player.moving_left = False
-        player.moving_up = False
-    '''
     if event.key == pygame.K_RIGHT:
         player.moving_right = False
         if (player.side == 'bottomright' and keys[pygame.K_DOWN] == 0) or (player.side == 'topright' and keys[pygame.K_UP] == 0):
@@ -170,6 +155,11 @@ def fire_arrow(ai_settings, arrows, screen, player):
         arrows.add(new_arrow)
 
 
+def spawn_mob(maps, ai_settings, screen, mobs, x, y):
+    new_mob = Enemy(ai_settings, screen, x, y, maps)
+    mobs.add(new_mob)
+
+
 def update_arrows(arrows, ai_settings):
     for arrow in arrows:
         if arrow.rect.bottom < 0 or arrow.rect.bottom > ai_settings.screen_height or arrow.rect.left < 0 or arrow.rect.left > ai_settings.screen_width:
@@ -186,22 +176,26 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn):
+def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, flag):
+    '''
     for wall in walls:
         walls.remove(wall)
         wall.kill()
     for spawn in mobs_spawn:
         mobs_spawn.remove(spawn)
-        spawn.kill()
+        # spawn.kill()
+    '''
     for row in range(len(maps.tilemap1)):
         for column in range(len(maps.tilemap1[0])):
 
             if maps.tilemap1[row][column] == 1:
-                newall = Wall(ai_settings, screen, maps, column, row)
-                walls.add(newall)
+                if flag:
+                    newall = Wall(ai_settings, screen, maps, column, row)
+                    walls.add(newall)
             if maps.tilemap1[row][column] == 3:
-                spawn = EnemySpawn(ai_settings, screen, maps, column, row)
-                mobs_spawn.add(spawn)
+                if flag:
+                    spawn = EnemySpawn(ai_settings, screen, maps, column, row)
+                    mobs_spawn.add(spawn)
                 screen.blit(maps.textures_floor,
                             (column*40, row*40), (0, 0, 40, 40))
             else:
@@ -251,16 +245,22 @@ def object_hit(player, walls, mobs_spawn, mobs):
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, first_draw=1):
     screen.fill([255, 0, 0])
     # pygame.display.update()
-    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn)
+    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, first_draw)
     walls.update()
     walls.draw(screen)
     all_sprites.update()
     all_sprites.draw(screen)
     mobs_spawn.update()
     mobs_spawn.draw(screen)
+    for i in mobs_spawn:
+        i.timer -= 2
+        if i.timer == 0:
+            i.timer = 1000
+
+            spawn_mob(maps, ai_settings, screen, mobs, i.x-40, i.y)
     mobs.update()
     mobs.draw(screen)
     object_hit(player, walls, mobs_spawn, mobs)

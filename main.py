@@ -24,18 +24,20 @@ class GauntletGame:
         self.all_sprites.add(self.player)
         self.maps = Map()
         self.mobs = pygame.sprite.Group()
-        self.mob = Enemy(self.settings, self.screen, self.maps)
-        self.mobs.add(self.mob)
+        #self.mob = Enemy(self.settings, self.screen, self.maps)
+        # self.mobs.add(self.mob)
         self.mobs_spawns = pygame.sprite.Group()
         pygame.display.set_caption("Gauntlet")
 
     def run_game(self):
+        self.first_draw = 1
         while True:
             self.clock.tick(60)
             k_a.check_event(self.settings, self.screen,
                             self.player, self.arrows)
             k_a.update_screen(self.settings, self.screen,
-                              self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns)
+                              self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.first_draw)
+            self.first_draw = 0
 
 
 if __name__ == '__main__':

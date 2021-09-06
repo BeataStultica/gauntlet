@@ -1,16 +1,17 @@
 import pygame
+import random
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, ai_settings, screen, maps):
+    def __init__(self, ai_settings, screen, x, y, maps):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
+        self.level = maps.tilemap1
         self.ai_settings = ai_settings
         self.block_size = ai_settings.block_size
         self.sheet = pygame.image.load('assets/ghost.png').convert()
         self.sheet = pygame.transform.scale(
             self.sheet, (12*self.block_size, 8*self.block_size))
-        #self.image = None
         self.rect = pygame.Rect((0, 0, self.block_size, self.block_size))
         self.image = pygame.Surface(
             (self.block_size, self.block_size)).convert()
@@ -18,34 +19,35 @@ class Enemy(pygame.sprite.Sprite):
         self.transColor = self.image.get_at((2, 2))
         self.image.set_colorkey(self.transColor)
         self.screen_rect = screen.get_rect()
-        self.rect.centerx = self.screen_rect.centerx
-        self.rect.centery = self.screen_rect.centery
+        self.rect.centerx = x
+        self.rect.centery = y
         self.x = float(self.rect.centerx)
         self.y = float(self.rect.centery)
         self.moving_right = False
         self.moving_left = False
         self.moving_down = False
         self.moving_up = False
-        self.side = 'right'
+        self.side = 2
         self.hp = 10
         self.atk = 100
+        self.speed = 2
 
     def update(self):
-        """
-        if self.moving_right and self.rect.right < self.screen_rect.right:
-            self.x += self.ai_settings.speed_factor * \
-                self.speed_factor_collise[1]
-        if self.moving_left and self.rect.left > self.screen_rect.left:
-            self.x -= self.ai_settings.speed_factor * \
-                self.speed_factor_collise[0]
-        if self.moving_down and self.rect.bottom < self.screen_rect.bottom:
-            self.y += self.ai_settings.speed_factor * \
-                self.speed_factor_collise[3]
-        if self.moving_up and self.rect.top > self.screen_rect.top:
-            self.y -= self.ai_settings.speed_factor * \
-                self.speed_factor_collise[2]
-        """
-
+        a = random.randint(1, 4)
+        posy = int(self.rect.centery/self.block_size)-1
+        posx = int(self.rect.centerx/self.block_size)-1
+        if a == 1:
+            if self.level[posy][posx+1] == 0:
+                self.x += self.speed
+        elif a == 2:
+            if self.level[posy][posx-1] == 0:
+                self.x -= self.speed
+        elif a == 3:
+            if self.level[posy+1][posx] == 0:
+                self.y += self.speed
+        else:
+            if self.level[posy-1][posx] == 0:
+                self.y -= self.speed
         self.rect.centerx = self.x
         self.rect.centery = self.y
 
