@@ -38,20 +38,28 @@ class Enemy(pygame.sprite.Sprite):
         if self.side == 1:
             if self.level[posy][posx+1] == 0:
                 self.x += self.speed
+            elif self.rect.right < (posx+1)*40:
+                self.x += self.speed
             else:
                 self.side = random.choice([2, 3, 4])
         elif self.side == 2:
             if self.level[posy][posx-1] == 0:
+                self.x -= self.speed
+            elif self.rect.left > (posx)*40:
                 self.x -= self.speed
             else:
                 self.side = random.choice([1, 3, 4])
         elif self.side == 3:
             if self.level[posy+1][posx] == 0:
                 self.y += self.speed
+            elif self.rect.bottom < (posy+1)*40:
+                self.y += self.speed
             else:
                 self.side = random.choice([2, 1, 4])
         else:
             if self.level[posy-1][posx] == 0:
+                self.y -= self.speed
+            elif self.rect.top > (posy)*40:
                 self.y -= self.speed
             else:
                 self.side = random.choice([2, 3, 1])
