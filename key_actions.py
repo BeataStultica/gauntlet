@@ -1,6 +1,7 @@
 import sys
 import pygame
 from arrow import Arrow
+from wall import Wall
 
 
 def change_sprite(side):
@@ -172,6 +173,7 @@ def update_arrows(arrows, ai_settings):
     for arrow in arrows:
         if arrow.rect.bottom < 0 or arrow.rect.bottom > ai_settings.screen_height or arrow.rect.left < 0 or arrow.rect.left > ai_settings.screen_width:
             arrows.remove(arrow)
+            arrow.kill()
 
 
 def draw_text(surf, text, size, x, y):
@@ -183,8 +185,22 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows):
-    screen.fill(ai_settings.bg_color)
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls):
+    for wall in walls:
+        walls.remove(wall)
+        wall.kill()
+    for row in range(len(maps.tilemap1)):
+        for column in range(len(maps.tilemap1[0])):
+
+            if maps.tilemap1[row][column] == 1:
+                newall = Wall(ai_settings, screen, maps, column, row)
+                walls.add(newall)
+            else:
+                screen.blit(maps.textures_floor,
+                            (column*20, row*20), (0, 0, 20, 20))
+    # screen.fill(ai_settings.bg_color)
+    walls.update()
+    walls.draw(screen)
     all_sprites.update()
     all_sprites.draw(screen)
     update_arrows(arrows, ai_settings)
