@@ -206,9 +206,43 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls)
                             (column*20, row*20), (0, 0, 20, 20))
     # screen.fill(ai_settings.bg_color)
     walls.update()
-    #walls.draw(screen)
+    # walls.draw(screen)
     all_sprites.update()
     all_sprites.draw(screen)
+    hits = pygame.sprite.spritecollide(player, walls, False)
+    l_coin = 0
+    r_coin = 0
+    t_coin = 0
+    b_coin = 0
+    for i in hits:
+        if i.rect.top <= player.rect.bottom and player.rect.centery < i.rect.centery:
+            b_coin += 1
+            player.speed_factor_collise[3] = 0
+            player.y -= 1
+            player.rect.centery -= 1
+        elif i.rect.bottom >= player.rect.top and player.rect.centery > i.rect.centery:
+            t_coin += 1
+            player.speed_factor_collise[2] = 0
+            player.y += 1
+            player.rect.centery += 1
+        if i.rect.left <= player.rect.right and player.rect.centerx < i.rect.centerx:
+            r_coin += 1
+            player.speed_factor_collise[1] = 0
+            player.x -= 1
+            player.rect.centerx -= 1
+        elif i.rect.right >= player.rect.left and player.rect.centerx > i.rect.centerx:
+            l_coin += 1
+            player.speed_factor_collise[0] = 0
+            player.x += 1
+            player.rect.centerx += 1
+    if l_coin == 0:
+        player.speed_factor_collise[0] = 1
+    if r_coin == 0:
+        player.speed_factor_collise[1] = 1
+    if t_coin == 0:
+        player.speed_factor_collise[2] = 1
+    if b_coin == 0:
+        player.speed_factor_collise[3] = 1
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)

@@ -31,16 +31,6 @@ class GauntletGame:
             k_a.update_screen(self.settings, self.screen,
                               self.player, self.all_sprites, self.arrows, self.maps, self.walls)
 
-    def _update_screen(self):
-        for row in range(len(self.maps.tilemap)):
-            for column in range(len(self.maps.tilemap[0])):
-                self.screen.blit(self.maps.textures_floor,
-                                 (column*20, row*20), (0, 0, 60, 60))
-        self.screen.update()
-        self.all_sprites.update()
-        self.all_sprites.draw(self.screen)
-        pygame.display.flip()
-
 
 if __name__ == '__main__':
     game = GauntletGame()

@@ -23,17 +23,22 @@ class Hero(pygame.sprite.Sprite):
         self.moving_left = False
         self.moving_down = False
         self.moving_up = False
+        self.speed_factor_collise = [1, 1, 1, 1]  # left right, top, bottom
         self.side = 'right'
 
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:
-            self.x += self.ai_settings.speed_factor
+            self.x += self.ai_settings.speed_factor * \
+                self.speed_factor_collise[1]
         if self.moving_left and self.rect.left > self.screen_rect.left:
-            self.x -= self.ai_settings.speed_factor
+            self.x -= self.ai_settings.speed_factor * \
+                self.speed_factor_collise[0]
         if self.moving_down and self.rect.bottom < self.screen_rect.bottom:
-            self.y += self.ai_settings.speed_factor
+            self.y += self.ai_settings.speed_factor * \
+                self.speed_factor_collise[3]
         if self.moving_up and self.rect.top > self.screen_rect.top:
-            self.y -= self.ai_settings.speed_factor
+            self.y -= self.ai_settings.speed_factor * \
+                self.speed_factor_collise[2]
         self.rect.centerx = self.x
         self.rect.centery = self.y
 
