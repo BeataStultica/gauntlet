@@ -8,3 +8,4 @@ class Settings:
         self.arrow_width = 16
         self.arrow_height = 16
         self.arrow_allowed = 3
+        self.block_size = 40

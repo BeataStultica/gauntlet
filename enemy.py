@@ -5,11 +5,15 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, ai_settings, screen, maps):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
-        self.sheet = pygame.image.load('assets/ghost.png').convert()
         self.ai_settings = ai_settings
+        self.block_size = ai_settings.block_size
+        self.sheet = pygame.image.load('assets/ghost.png').convert()
+        self.sheet = pygame.transform.scale(
+            self.sheet, (12*self.block_size, 8*self.block_size))
         #self.image = None
-        self.rect = pygame.Rect((0, 0, 48, 48))
-        self.image = pygame.Surface((48, 48)).convert()
+        self.rect = pygame.Rect((0, 0, self.block_size, self.block_size))
+        self.image = pygame.Surface(
+            (self.block_size, self.block_size)).convert()
         self.image.blit(self.sheet, (0, 0), self.rect)
         self.transColor = self.image.get_at((2, 2))
         self.image.set_colorkey(self.transColor)

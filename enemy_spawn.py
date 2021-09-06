@@ -7,14 +7,15 @@ class EnemySpawn(pygame.sprite.Sprite):
         self.screen = screen
         self.sheet = pygame.image.load('assets/spawn_ghost.png').convert()
         self.ai_settings = ai_settings
-        self.image = pygame.Surface((31, 48)).convert()
+        self.image = pygame.Surface((25, 40)).convert()
+        self.sheet = pygame.transform.scale(self.sheet, (25, 40))
         self.rect = self.image.get_rect()
         self.image.blit(self.sheet, (0, 0))
         self.transColor = self.image.get_at((2, 2))
         self.image.set_colorkey(self.transColor)
         self.screen_rect = screen.get_rect()
-        self.rect.centerx = column*31
-        self.rect.centery = row*48
+        self.rect.x = column*40
+        self.rect.y = row*40
         self.x = float(self.rect.centerx)
         self.y = float(self.rect.centery)
 

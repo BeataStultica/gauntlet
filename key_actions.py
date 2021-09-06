@@ -190,6 +190,9 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn):
     for wall in walls:
         walls.remove(wall)
         wall.kill()
+    for spawn in mobs_spawn:
+        mobs_spawn.remove(spawn)
+        spawn.kill()
     for row in range(len(maps.tilemap1)):
         for column in range(len(maps.tilemap1[0])):
 
@@ -199,9 +202,11 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn):
             if maps.tilemap1[row][column] == 3:
                 spawn = EnemySpawn(ai_settings, screen, maps, column, row)
                 mobs_spawn.add(spawn)
+                screen.blit(maps.textures_floor,
+                            (column*40, row*40), (0, 0, 40, 40))
             else:
                 screen.blit(maps.textures_floor,
-                            (column*20, row*20), (0, 0, 20, 20))
+                            (column*40, row*40), (0, 0, 40, 40))
 
 
 def wall_hit(player, walls):
