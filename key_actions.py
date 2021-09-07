@@ -273,10 +273,15 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.draw(screen)
     for i in mobs_spawn:
         i.timer -= 10
-        if i.timer <= 0 and player.mobs_limit >= 0:
+        flag = True
+        for j in mobs:
+            if i.x - j.x < 60 and ((i.y - j.y)**2)**(1/2) < 28:
+                flag = False
+                break
+        if i.timer <= 0 and player.mobs_limit >= 0 and flag:
             i.timer = 1000
 
-            spawn_mob(maps, ai_settings, screen, mobs, i.x-40, i.y)
+            spawn_mob(maps, ai_settings, screen, mobs, i.x-30, i.y)
             player.mobs_limit -= 1
     mobs.update()
     mobs.draw(screen)

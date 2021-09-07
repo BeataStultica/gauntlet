@@ -44,7 +44,6 @@ class Enemy(pygame.sprite.Sprite):
         for i in self.mobs:
             if i == self:
                 continue
-            curr_d = ((i.x - self.x)**2 + (i.y - self.y)**2)**(1/2)
             if self.side == 1:
                 if i.side == 1 and ((i.x - self.x)**2 + (i.y - self.y)**2)**(1/2) < 28:
                     mobs_r.append(i)
