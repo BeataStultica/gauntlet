@@ -5,6 +5,7 @@ from wall import Wall
 from enemy_spawn import EnemySpawn
 from enemy import Enemy
 import random
+from next_lvl import Exit
 
 
 def change_sprite(side):
@@ -22,18 +23,6 @@ def change_sprite(side):
 
 
 def check_keydown_events(event, ai_settings, screen, player, arrows):
-    # for event in pygame.event.get():
-    '''
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] and keys[pygame.K_LEFT] and keys[pygame.K_UP]:
-        player.image = change_sprite('top')
-        player.side = 'up'
-        player.moving_up = True
-    elif keys[pygame.K_RIGHT] and keys[pygame.K_LEFT] and keys[pygame.K_DOWN]:
-        player.image = change_sprite('down')
-        player.side = 'down'
-        player.moving_down = True
-    '''
     if event.key == pygame.K_z:
         fire_arrow(ai_settings, arrows, screen, player)
     elif event.key == pygame.K_RIGHT:
@@ -80,6 +69,10 @@ def check_keydown_events(event, ai_settings, screen, player, arrows):
         else:
             player.image = change_sprite('down')
             player.side = 'down'
+    elif event.key == pygame.K_ESCAPE:
+        ai_settings.game_status = 0
+    elif event.key == pygame.K_x:
+        ai_settings.game_status = 1
 
 
 def keyup(event, player):
@@ -140,7 +133,7 @@ def keyup(event, player):
         sys.exit()
 
 
-def check_event(ai_settings, screen, player, arrows):
+def check_game_event(ai_settings, screen, player, arrows):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -177,15 +170,7 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, flag):
-    '''
-    for wall in walls:
-        walls.remove(wall)
-        wall.kill()
-    for spawn in mobs_spawn:
-        mobs_spawn.remove(spawn)
-        # spawn.kill()
-    '''
+def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, flag):
     for row in range(len(maps.tilemap1)):
         for column in range(len(maps.tilemap1[0])):
 
@@ -199,12 +184,16 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, flag):
                     mobs_spawn.add(spawn)
                 screen.blit(maps.textures_floor,
                             (column*40, row*40), (0, 0, 40, 40))
+            if maps.tilemap1[row][column] == 9:
+                if flag:
+                    newexit = Exit(ai_settings, screen, maps, column, row)
+                    exits.add(newexit)
             else:
                 screen.blit(maps.textures_floor,
                             (column*40, row*40), (0, 0, 40, 40))
 
 
-def object_hit(player, walls, mobs_spawn, mobs):
+def object_hit(player, walls, mobs_spawn, mobs, ai_settings):
     hits = pygame.sprite.spritecollide(player, walls, False)
     hits_spawn = pygame.sprite.spritecollide(player, mobs_spawn, False)
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
@@ -213,19 +202,8 @@ def object_hit(player, walls, mobs_spawn, mobs):
         player.mobs_limit += 1
         player.hp -= i.atk
         if player.hp <= 0:
-            player.kill()
-    '''
-    for mob in mobs:
-        test_group = pygame.sprite.Group([s for s in mobs if s != mob])
-        mob_to_mob_collide = pygame.sprite.spritecollide(
-            mob, test_group, False)
-        sides = [1, 2, 3, 4]
-        for i in mob_to_mob_collide:
-            if i.side in sides:
-                sides.remove(i.side)
-        if sides:
-            mob.side = random.choice(sides)
-    '''
+            ai_settings.game_status = 2
+
     l_coin = 0
     r_coin = 0
     t_coin = 0
@@ -261,16 +239,17 @@ def object_hit(player, walls, mobs_spawn, mobs):
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, first_draw=1):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, first_draw=1):
     screen.fill([255, 0, 0])
-    # pygame.display.update()
-    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, first_draw)
+    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, first_draw)
     walls.update()
     walls.draw(screen)
     all_sprites.update()
     all_sprites.draw(screen)
     mobs_spawn.update()
     mobs_spawn.draw(screen)
+    exits.update()
+    exits.draw(screen)
     for i in mobs_spawn:
         i.timer -= 10
         flag = True
@@ -285,21 +264,44 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
             player.mobs_limit -= 1
     mobs.update()
     mobs.draw(screen)
-    object_hit(player, walls, mobs_spawn, mobs)
+    object_hit(player, walls, mobs_spawn, mobs, ai_settings)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
     pygame.sprite.groupcollide(walls, arrows, False, True)
     damaged_mobs = pygame.sprite.groupcollide(mobs, arrows, False, True)
+    damaged_spawn = pygame.sprite.groupcollide(mobs_spawn, arrows, False, True)
+    for i in damaged_spawn:
+        i.hp -= player.atk
+        if i.hp <= 0:
+            i.kill()
+            ai_settings.score += i.cost
     for i in damaged_mobs:
         i.hp -= player.atk
         if i.hp <= 0:
             i.kill()
-            player.score += i.cost
+            ai_settings.score += i.cost
             player.mobs_limit += 1
-    draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.90, 10)
     draw_text(screen, 'HP: '+str(player.hp), 18,
               ai_settings.screen_width*0.90, 40)
-    draw_text(screen, 'SCORE: '+str(player.score),
+    draw_text(screen, 'SCORE: '+str(ai_settings.score),
               18, ai_settings.screen_width*0.90, 70)
+    pygame.display.flip()
+
+
+def draw_end_screen(screen, player, ai_settings):
+    screen.fill([0, 0, 0])
+    draw_text(screen, 'YOU DEAD',
+              48, ai_settings.screen_width/2, ai_settings.screen_height/2)
+    draw_text(screen, 'SCORE: '+str(ai_settings.score),
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2 - 60)
+    draw_text(screen, 'Press Esc to go menu or X to restart',
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2-100)
+    pygame.display.flip()
+
+
+def draw_menu_screen(screen, player, ai_settings):
+    screen.fill([0, 0, 0])
+    draw_text(screen, 'PRESS X to start the game'+str(ai_settings.score),
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2)
     pygame.display.flip()

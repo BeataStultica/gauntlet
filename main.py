@@ -6,8 +6,6 @@ from player import Hero
 from settings import Settings
 import key_actions as k_a
 from map import Map
-from enemy import Enemy
-from enemy_spawn import EnemySpawn
 
 
 class GauntletGame:
@@ -24,20 +22,44 @@ class GauntletGame:
         self.all_sprites.add(self.player)
         self.maps = Map()
         self.mobs = pygame.sprite.Group()
-        #self.mob = Enemy(self.settings, self.screen, self.maps)
-        # self.mobs.add(self.mob)
+        self.exits = pygame.sprite.Group()
         self.mobs_spawns = pygame.sprite.Group()
         pygame.display.set_caption("Gauntlet")
+
+    def clean_after_dead(self):
+        for i in self.walls:
+            i.kill()
+        for i in self.mobs:
+            i.kill()
+        for i in self.all_sprites:
+            i.kill()
+        for i in self.exits:
+            i.kill()
+        for i in self.mobs_spawns:
+            i.kill()
+        self.settings.score = 0
+
+    def new_game(self):
+        self.player = Hero(self.settings, self.screen)
+        self.all_sprites.add(self.player)
 
     def run_game(self):
         self.first_draw = 1
         while True:
             self.clock.tick(60)
-            k_a.check_event(self.settings, self.screen,
-                            self.player, self.arrows)
-            k_a.update_screen(self.settings, self.screen,
-                              self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.first_draw)
-            self.first_draw = 0
+            k_a.check_game_event(self.settings, self.screen,
+                                 self.player, self.arrows)
+            if self.settings.game_status == 0:
+                k_a.draw_menu_screen(self.screen, self.player, self.settings)
+            elif self.settings.game_status == 1:
+                k_a.update_screen(self.settings, self.screen,
+                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.first_draw)
+                self.first_draw = 0
+            elif self.settings.game_status == 2:
+                k_a.draw_end_screen(self.screen, self.player, self.settings)
+                self.clean_after_dead()
+                self.new_game()
+                self.first_draw = 1
 
 
 if __name__ == '__main__':

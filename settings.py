@@ -9,3 +9,5 @@ class Settings:
         self.arrow_height = 16
         self.arrow_allowed = 3
         self.block_size = 40
+        self.game_status = 0  # 0 - menu, 1 - game, 2 - dead
+        self.score = 0

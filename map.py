@@ -35,3 +35,6 @@ class Map:
         self.textures_floor = pygame.transform.scale(
             self.textures_floor, (282, 146))
         self.textures_walls = pygame.image.load('assets/walls2.png').convert()
+        self.textures_exit = pygame.image.load('assets/exit.png').convert()
+        self.textures_exit = pygame.transform.scale(
+            self.textures_exit, (20, 20))
