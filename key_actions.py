@@ -4,6 +4,7 @@ from arrow import Arrow
 from wall import Wall
 from enemy_spawn import EnemySpawn
 from enemy import Enemy
+import random
 
 
 def change_sprite(side):
@@ -156,7 +157,7 @@ def fire_arrow(ai_settings, arrows, screen, player):
 
 
 def spawn_mob(maps, ai_settings, screen, mobs, x, y):
-    new_mob = Enemy(ai_settings, screen, x, y, maps)
+    new_mob = Enemy(ai_settings, screen, x, y, maps, mobs)
     mobs.add(new_mob)
 
 
@@ -209,9 +210,22 @@ def object_hit(player, walls, mobs_spawn, mobs):
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
     for i in mobs_hit:
         i.kill()
+        player.mobs_limit += 1
         player.hp -= i.atk
         if player.hp <= 0:
             player.kill()
+    '''
+    for mob in mobs:
+        test_group = pygame.sprite.Group([s for s in mobs if s != mob])
+        mob_to_mob_collide = pygame.sprite.spritecollide(
+            mob, test_group, False)
+        sides = [1, 2, 3, 4]
+        for i in mob_to_mob_collide:
+            if i.side in sides:
+                sides.remove(i.side)
+        if sides:
+            mob.side = random.choice(sides)
+    '''
     l_coin = 0
     r_coin = 0
     t_coin = 0
@@ -259,10 +273,11 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.draw(screen)
     for i in mobs_spawn:
         i.timer -= 10
-        if i.timer == 0:
+        if i.timer <= 0 and player.mobs_limit >= 0:
             i.timer = 1000
 
             spawn_mob(maps, ai_settings, screen, mobs, i.x-40, i.y)
+            player.mobs_limit -= 1
     mobs.update()
     mobs.draw(screen)
     object_hit(player, walls, mobs_spawn, mobs)
@@ -276,6 +291,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         if i.hp <= 0:
             i.kill()
             player.score += i.cost
+            player.mobs_limit += 1
     draw_text(screen, str(player.side), 18, ai_settings.screen_width*0.90, 10)
     draw_text(screen, 'HP: '+str(player.hp), 18,
               ai_settings.screen_width*0.90, 40)
