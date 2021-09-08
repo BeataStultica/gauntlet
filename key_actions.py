@@ -4,23 +4,25 @@ from arrow import Arrow
 from wall import Wall
 from enemy_spawn import EnemySpawn
 from enemy import Enemy
-import random
 from next_lvl import Exit
 from treasure import Treasure
 from foods import Food
 
 
 def change_sprite(side):
-    coords = {'left': (450, 25, 48, 48), 'right': (
-        450, 75, 48, 48), 'up': (450, 50, 48, 48), 'down': (475, 0, 48, 48), 'topright': (525, 50, 48, 48),
-        'topleft': (525, 25, 48, 48), 'bottomright': (525, 75, 48, 48),  'bottomleft': (525, 0, 48, 48)}
-    rect = pygame.Rect(coords[side])
+    coords = {'left': (900, 50, 50, 50), 'right': (
+        900, 150, 50, 50), 'up': (900, 100, 50, 50), 'down': (950, 0, 50, 50), 'topright': (1050, 100, 50, 50),
+        'topleft': (1050, 50, 50, 50), 'bottomright': (1050, 150, 50, 50),  'bottomleft': (1050, 0, 50, 50)}
+    rect = pygame.Rect((0, 0, 38, 38))
     sheet = pygame.image.load('assets/elf.png').convert()
-    image = pygame.Surface((24, 24)).convert()
-    image.blit(sheet, (0, 0), rect)
+    sheet = pygame.transform.scale(
+        sheet, (1198, 832))
+    image = pygame.Surface((49, 49)).convert()
+    image.blit(sheet, (0, 0), coords[side])
     transColor = image.get_at((2, 2))
     image.set_colorkey(transColor)
-    image = pygame.transform.scale(image, (48, 48))
+    image = pygame.transform.scale(
+        image, (40, 40))
     return image
 
 
@@ -222,6 +224,25 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, food
                             (column*40, row*40), (0, 0, 40, 40))
 
 
+def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure, foods):
+    pygame.sprite.groupcollide(walls, arrows, False, True)
+    pygame.sprite.groupcollide(treasure, arrows, False, True)
+    pygame.sprite.groupcollide(foods, arrows, False, True)
+    damaged_mobs = pygame.sprite.groupcollide(mobs, arrows, False, True)
+    damaged_spawn = pygame.sprite.groupcollide(mobs_spawn, arrows, False, True)
+    for i in damaged_spawn:
+        i.hp -= player.atk
+        if i.hp <= 0:
+            i.kill()
+            ai_settings.score += i.cost
+    for i in damaged_mobs:
+        i.hp -= player.atk
+        if i.hp <= 0:
+            i.kill()
+            ai_settings.score += i.cost
+            player.mobs_limit += 1
+
+
 def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, food, maps):
     hits = pygame.sprite.spritecollide(player, walls, False)
     hits_spawn = pygame.sprite.spritecollide(player, mobs_spawn, False)
@@ -312,20 +333,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
-    pygame.sprite.groupcollide(walls, arrows, False, True)
-    damaged_mobs = pygame.sprite.groupcollide(mobs, arrows, False, True)
-    damaged_spawn = pygame.sprite.groupcollide(mobs_spawn, arrows, False, True)
-    for i in damaged_spawn:
-        i.hp -= player.atk
-        if i.hp <= 0:
-            i.kill()
-            ai_settings.score += i.cost
-    for i in damaged_mobs:
-        i.hp -= player.atk
-        if i.hp <= 0:
-            i.kill()
-            ai_settings.score += i.cost
-            player.mobs_limit += 1
+    arrow_damage(mobs, arrows, mobs_spawn, player,
+                 ai_settings, walls, treasure, foods)
     draw_text(screen, 'HP: '+str(int(player.hp)), 18,
               ai_settings.screen_width*0.90, 40)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
@@ -338,7 +347,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
 def draw_end_screen(screen, ai_settings):
     screen.fill([0, 0, 0])
     draw_text(screen, 'YOU DEAD',
-              48, ai_settings.screen_width/2, ai_settings.screen_height/2)
+              25, ai_settings.screen_width/2, ai_settings.screen_height/2)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
               38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 60)
     draw_text(screen, 'Press Esc to go menu or X to restart',
@@ -356,7 +365,7 @@ def draw_menu_screen(screen, ai_settings):
 def draw_win_screen(screen, ai_settings):
     screen.fill([100, 100, 100])
     draw_text(screen, 'YOU WIN!!!',
-              48, ai_settings.screen_width/2, ai_settings.screen_height/2)
+              25, ai_settings.screen_width/2, ai_settings.screen_height/2)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
               38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 60)
     draw_text(screen, 'Press Esc to go menu or X to restart',

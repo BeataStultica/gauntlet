@@ -6,16 +6,17 @@ class Hero(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.sheet = pygame.image.load('assets/elf.png').convert()
+        self.sheet = pygame.transform.scale(
+            self.sheet, (1198, 832))
         self.ai_settings = ai_settings
         self.block_size = self.ai_settings.block_size
-        #self.image = None
-        self.rect = pygame.Rect((450, 75, self.block_size, self.block_size))
-        self.image = pygame.Surface((24, 24)).convert()
-        self.image.blit(self.sheet, (0, 0), self.rect)
+        self.rect = pygame.Rect((450, 75, 38, 38))
+        self.image = pygame.Surface((49, 49)).convert()
+        self.image.blit(self.sheet, (0, 0), (900, 150, 50, 50))
         self.transColor = self.image.get_at((2, 2))
         self.image.set_colorkey(self.transColor)
         self.image = pygame.transform.scale(
-            self.image, (self.block_size, self.block_size))
+            self.image, (40, 40))
         self.screen_rect = screen.get_rect()
         self.rect.centerx = self.screen_rect.centerx
         self.rect.centery = self.screen_rect.centery
