@@ -11,3 +11,4 @@ class Settings:
         self.block_size = 40
         self.game_status = 0  # 0 - menu, 1 - game, 2 - dead
         self.score = 0
+        self.current_lvl = 1

@@ -1,5 +1,3 @@
-import sys
-
 import pygame
 
 from player import Hero
@@ -24,6 +22,9 @@ class GauntletGame:
         self.mobs = pygame.sprite.Group()
         self.exits = pygame.sprite.Group()
         self.mobs_spawns = pygame.sprite.Group()
+        self.treasure = pygame.sprite.Group()
+        self.foods = pygame.sprite.Group()
+        self.lvl = 1
         pygame.display.set_caption("Gauntlet")
 
     def clean_after_dead(self):
@@ -31,15 +32,20 @@ class GauntletGame:
             i.kill()
         for i in self.mobs:
             i.kill()
-        for i in self.all_sprites:
-            i.kill()
         for i in self.exits:
             i.kill()
         for i in self.mobs_spawns:
             i.kill()
-        self.settings.score = 0
+        for i in self.treasure:
+            i.kill()
+        for i in self.foods:
+            i.kill()
 
     def new_game(self):
+        self.lvl = 1
+        self.maps = Map()
+        for i in self.all_sprites:
+            i.kill()
         self.player = Hero(self.settings, self.screen)
         self.all_sprites.add(self.player)
 
@@ -50,13 +56,29 @@ class GauntletGame:
             k_a.check_game_event(self.settings, self.screen,
                                  self.player, self.arrows)
             if self.settings.game_status == 0:
-                k_a.draw_menu_screen(self.screen, self.player, self.settings)
+                k_a.draw_menu_screen(self.screen,  self.settings)
+                self.clean_after_dead()
+                self.new_game()
+                self.first_draw = 1
             elif self.settings.game_status == 1:
                 k_a.update_screen(self.settings, self.screen,
-                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.first_draw)
-                self.first_draw = 0
+                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.first_draw)
+                if self.lvl == self.settings.current_lvl:
+                    self.first_draw = 0
+                else:
+                    self.first_draw = 1
+                    self.lvl += 1
+                    if self.lvl == 4:
+                        self.settings.game_status = 3
+                        self.settings.current_lvl = 1
+                    self.clean_after_dead()
             elif self.settings.game_status == 2:
-                k_a.draw_end_screen(self.screen, self.player, self.settings)
+                k_a.draw_end_screen(self.screen,  self.settings)
+                self.clean_after_dead()
+                self.new_game()
+                self.first_draw = 1
+            elif self.settings.game_status == 3:
+                k_a.draw_win_screen(self.screen,  self.settings)
                 self.clean_after_dead()
                 self.new_game()
                 self.first_draw = 1

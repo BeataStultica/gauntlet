@@ -7,8 +7,8 @@ class Enemy(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.mobs = mobs
-        self.level = maps.tilemap1
         self.ai_settings = ai_settings
+        self.level = maps.levels[self.ai_settings.current_lvl]
         self.block_size = ai_settings.block_size
         self.sheet = pygame.image.load('assets/ghost.png').convert()
         self.sheet = pygame.transform.scale(

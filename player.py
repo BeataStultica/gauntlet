@@ -28,6 +28,7 @@ class Hero(pygame.sprite.Sprite):
         self.speed_factor_collise = [1, 1, 1, 1]  # left right, top, bottom
         self.side = 'right'
         self.atk = 10
+        self.max_hp = 1000
         self.hp = 1000
         self.score = 0
         self.mobs_limit = 50

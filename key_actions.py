@@ -6,6 +6,8 @@ from enemy_spawn import EnemySpawn
 from enemy import Enemy
 import random
 from next_lvl import Exit
+from treasure import Treasure
+from foods import Food
 
 
 def change_sprite(side):
@@ -71,7 +73,11 @@ def check_keydown_events(event, ai_settings, screen, player, arrows):
             player.side = 'down'
     elif event.key == pygame.K_ESCAPE:
         ai_settings.game_status = 0
+        ai_settings.current_lvl = 1
     elif event.key == pygame.K_x:
+        if ai_settings.game_status != 1:
+            ai_settings.score = 0
+            ai_settings.current_lvl = 1
         ai_settings.game_status = 1
 
 
@@ -170,32 +176,64 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, flag):
-    for row in range(len(maps.tilemap1)):
-        for column in range(len(maps.tilemap1[0])):
+def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, foods, flag):
+    lvl = maps.levels[ai_settings.current_lvl]
+    for row in range(len(lvl)):
+        for column in range(len(lvl[0])):
 
-            if maps.tilemap1[row][column] == 1:
+            if lvl[row][column] == 1:
                 if flag:
                     newall = Wall(ai_settings, screen, maps, column, row)
                     walls.add(newall)
-            if maps.tilemap1[row][column] == 3:
+            if lvl[row][column] == 3:
                 if flag:
                     spawn = EnemySpawn(ai_settings, screen, maps, column, row)
                     mobs_spawn.add(spawn)
                 screen.blit(maps.textures_floor,
                             (column*40, row*40), (0, 0, 40, 40))
-            if maps.tilemap1[row][column] == 9:
+            if lvl[row][column] == 9:
                 if flag:
                     newexit = Exit(ai_settings, screen, maps, column, row)
                     exits.add(newexit)
+            if lvl[row][column] == 4:
+                if flag:
+                    newt = Treasure(ai_settings, screen, maps, column, row)
+                    treasure.add(newt)
+                screen.blit(maps.textures_floor,
+                            (column*40, row*40), (0, 0, 40, 40))
+            if lvl[row][column] == 5:
+                if flag:
+                    newf = Food(ai_settings, screen, maps, column, row)
+                    foods.add(newf)
+                screen.blit(maps.textures_floor,
+                            (column*40, row*40), (0, 0, 40, 40))
             else:
                 screen.blit(maps.textures_floor,
                             (column*40, row*40), (0, 0, 40, 40))
 
 
-def object_hit(player, walls, mobs_spawn, mobs, ai_settings):
+def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, food, maps):
     hits = pygame.sprite.spritecollide(player, walls, False)
     hits_spawn = pygame.sprite.spritecollide(player, mobs_spawn, False)
+    next_lvl = pygame.sprite.spritecollide(player, exits, False)
+    if next_lvl:
+        next_lvl[0].kill()
+        ai_settings.current_lvl += 1
+    treasure_find = pygame.sprite.spritecollide(player, treasure, False)
+    for i in treasure_find:
+        ai_settings.score += i.value
+        maps.levels[ai_settings.current_lvl][int(i.rect.y /
+                                             ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+        i.kill()
+    food_find = pygame.sprite.spritecollide(player, food, False)
+    for i in food_find:
+        if player.hp+i.value <= player.max_hp:
+            player.hp += i.value
+        else:
+            player.hp = player.max_hp
+        maps.levels[ai_settings.current_lvl][int(i.rect.y /
+                                             ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+        i.kill()
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
     for i in mobs_hit:
         i.kill()
@@ -239,9 +277,10 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings):
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, first_draw=1):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, first_draw=1):
     screen.fill([255, 0, 0])
-    draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, first_draw)
+    draw_lvl(walls, ai_settings, screen, maps,
+             mobs_spawn, exits, treasure, foods, first_draw)
     walls.update()
     walls.draw(screen)
     all_sprites.update()
@@ -250,6 +289,10 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.draw(screen)
     exits.update()
     exits.draw(screen)
+    treasure.update()
+    treasure.draw(screen)
+    foods.update()
+    foods.draw(screen)
     for i in mobs_spawn:
         i.timer -= 10
         flag = True
@@ -264,7 +307,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
             player.mobs_limit -= 1
     mobs.update()
     mobs.draw(screen)
-    object_hit(player, walls, mobs_spawn, mobs, ai_settings)
+    object_hit(player, walls, mobs_spawn, mobs,
+               ai_settings, exits, treasure, foods, maps)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
@@ -286,22 +330,35 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
               ai_settings.screen_width*0.90, 40)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
               18, ai_settings.screen_width*0.90, 70)
+    draw_text(screen, 'LVL '+str(ai_settings.current_lvl),
+              18, ai_settings.screen_width*0.90, 100)
     pygame.display.flip()
 
 
-def draw_end_screen(screen, player, ai_settings):
+def draw_end_screen(screen, ai_settings):
     screen.fill([0, 0, 0])
     draw_text(screen, 'YOU DEAD',
               48, ai_settings.screen_width/2, ai_settings.screen_height/2)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
-              38, ai_settings.screen_width/2, ai_settings.screen_height/2 - 60)
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 60)
     draw_text(screen, 'Press Esc to go menu or X to restart',
-              38, ai_settings.screen_width/2, ai_settings.screen_height/2-100)
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 100)
     pygame.display.flip()
 
 
-def draw_menu_screen(screen, player, ai_settings):
+def draw_menu_screen(screen, ai_settings):
     screen.fill([0, 0, 0])
-    draw_text(screen, 'PRESS X to start the game'+str(ai_settings.score),
+    draw_text(screen, 'PRESS X to start the game',
               38, ai_settings.screen_width/2, ai_settings.screen_height/2)
+    pygame.display.flip()
+
+
+def draw_win_screen(screen, ai_settings):
+    screen.fill([100, 100, 100])
+    draw_text(screen, 'YOU WIN!!!',
+              48, ai_settings.screen_width/2, ai_settings.screen_height/2)
+    draw_text(screen, 'SCORE: '+str(ai_settings.score),
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 60)
+    draw_text(screen, 'Press Esc to go menu or X to restart',
+              38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 100)
     pygame.display.flip()
