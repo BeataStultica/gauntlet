@@ -13,13 +13,13 @@ class Arrow(pygame.sprite.Sprite):
             'topleft': (501, 350, 32, 32), 'bottomright': (569, 350, 32, 32),  'bottomleft': (467, 350, 32, 32)}
 
         self.rect = pygame.Rect(
-            self.coords[self.player.side])
+            (0, 0, 16, 16))
         self.image = pygame.Surface(
             (ai_settings.arrow_width, ai_settings.arrow_height)).convert()
-        self.image.blit(self.sheet, (0, 0), self.rect)
+        self.image.blit(self.sheet, (0, 0), self.coords[self.player.side])
         self.transColor = self.image.get_at((0, 0))
         self.image.set_colorkey(self.transColor)
-        self.image = pygame.transform.scale(self.image, (32, 32))
+        self.image = pygame.transform.scale(self.image, (24, 24))
         self.rect.centerx = self.player.x
         self.rect.centery = self.player.y
         #self.rect.top = player.rect.top
