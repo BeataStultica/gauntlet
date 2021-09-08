@@ -155,9 +155,19 @@ def fire_arrow(ai_settings, arrows, screen, player):
         arrows.add(new_arrow)
 
 
-def spawn_mob(maps, ai_settings, screen, mobs, x, y):
-    new_mob = Enemy(ai_settings, screen, x, y, maps, mobs)
-    mobs.add(new_mob)
+def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn):
+    for i in mobs_spawn:
+        i.timer -= 10
+        flag = True
+        for j in mobs:
+            if i.x - j.x < 60 and ((i.y - j.y)**2)**(1/2) < 28:
+                flag = False
+                break
+        if i.timer <= 0 and player.mobs_limit >= 0 and flag:
+            i.timer = 1000
+            new_mob = Enemy(ai_settings, screen, i.x-30, i.y, maps, mobs)
+            mobs.add(new_mob)
+            player.mobs_limit -= 1
 
 
 def update_arrows(arrows, ai_settings):
@@ -293,18 +303,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     treasure.draw(screen)
     foods.update()
     foods.draw(screen)
-    for i in mobs_spawn:
-        i.timer -= 10
-        flag = True
-        for j in mobs:
-            if i.x - j.x < 60 and ((i.y - j.y)**2)**(1/2) < 28:
-                flag = False
-                break
-        if i.timer <= 0 and player.mobs_limit >= 0 and flag:
-            i.timer = 1000
-
-            spawn_mob(maps, ai_settings, screen, mobs, i.x-30, i.y)
-            player.mobs_limit -= 1
+    player.hp -= 0.02
+    spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn)
     mobs.update()
     mobs.draw(screen)
     object_hit(player, walls, mobs_spawn, mobs,
@@ -326,7 +326,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
             i.kill()
             ai_settings.score += i.cost
             player.mobs_limit += 1
-    draw_text(screen, 'HP: '+str(player.hp), 18,
+    draw_text(screen, 'HP: '+str(int(player.hp)), 18,
               ai_settings.screen_width*0.90, 40)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
               18, ai_settings.screen_width*0.90, 70)

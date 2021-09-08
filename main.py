@@ -40,6 +40,7 @@ class GauntletGame:
             i.kill()
         for i in self.foods:
             i.kill()
+        self.player.mobs_limit = 50
 
     def new_game(self):
         self.lvl = 1
