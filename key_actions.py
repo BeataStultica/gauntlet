@@ -7,6 +7,8 @@ from enemy import Enemy
 from next_lvl import Exit
 from treasure import Treasure
 from foods import Food
+from key import Key
+from door import Door
 
 
 def change_sprite(side):
@@ -26,7 +28,7 @@ def change_sprite(side):
     return image
 
 
-def check_keydown_events(event, ai_settings, screen, player, arrows):
+def check_keydown_events(event, ai_settings, screen, player, arrows, maps):
     if event.key == pygame.K_z:
         fire_arrow(ai_settings, arrows, screen, player)
     elif event.key == pygame.K_RIGHT:
@@ -80,6 +82,11 @@ def check_keydown_events(event, ai_settings, screen, player, arrows):
         if ai_settings.game_status != 1:
             ai_settings.score = 0
             ai_settings.current_lvl = 1
+            maps.lvl_generate()
+            player.rect.centerx = maps.x*40 + 20
+            player.rect.centery = maps.y*40 + 20
+            player.x = maps.x*40 + 20
+            player.y = maps.y*40 + 20
         ai_settings.game_status = 1
 
 
@@ -141,12 +148,13 @@ def keyup(event, player):
         sys.exit()
 
 
-def check_game_event(ai_settings, screen, player, arrows):
+def check_game_event(ai_settings, screen, player, arrows, maps):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_keydown_events(event, ai_settings, screen, player, arrows)
+            check_keydown_events(event, ai_settings,
+                                 screen, player, arrows, maps)
         elif event.type == pygame.KEYUP:
             keyup(event, player)
 
@@ -165,7 +173,7 @@ def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn):
             if i.x - j.x < 60 and ((i.y - j.y)**2)**(1/2) < 28:
                 flag = False
                 break
-        if i.timer <= 0 and player.mobs_limit >= 0 and flag:
+        if i.timer <= 0 and player.mobs_limit > 0 and flag:
             i.timer = 1000
             new_mob = Enemy(ai_settings, screen, i.x-30, i.y, maps, mobs)
             mobs.add(new_mob)
@@ -188,7 +196,7 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, foods, flag):
+def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, foods, keys, doors, flag):
     lvl = maps.levels[ai_settings.current_lvl]
     for row in range(len(lvl)):
         for column in range(len(lvl[0])):
@@ -207,6 +215,14 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, food
                 if flag:
                     newexit = Exit(ai_settings, screen, maps, column, row)
                     exits.add(newexit)
+            if lvl[row][column] == 8:
+                if flag:
+                    newkey = Key(ai_settings, screen, maps, column, row)
+                    keys.add(newkey)
+            if lvl[row][column] == 7:
+                if flag:
+                    newd = Door(ai_settings, screen, maps, column, row)
+                    doors.add(newd)
             if lvl[row][column] == 4:
                 if flag:
                     newt = Treasure(ai_settings, screen, maps, column, row)
@@ -243,18 +259,39 @@ def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure,
             player.mobs_limit += 1
 
 
-def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, food, maps):
+def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, food, keys, doors, maps):
     hits = pygame.sprite.spritecollide(player, walls, False)
     hits_spawn = pygame.sprite.spritecollide(player, mobs_spawn, False)
     next_lvl = pygame.sprite.spritecollide(player, exits, False)
+    keys_c = pygame.sprite.spritecollide(player, keys, False)
+    for i in keys_c:
+        player.keys += 1
+        maps.levels[ai_settings.current_lvl][int(i.rect.y /
+                                                 ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+        i.kill()
+    doors_c = pygame.sprite.spritecollide(player, doors, False)
+    for i in doors_c:
+        if player.keys >= 1:
+            player.keys -= 1
+            maps.levels[ai_settings.current_lvl][int(i.rect.y /
+                                                     ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+            for j in doors:
+                j.kill()
+        else:
+            hits.append(i)
     if next_lvl:
         next_lvl[0].kill()
         ai_settings.current_lvl += 1
+        maps.lvl_generate()
+        player.rect.centerx = maps.x*40 + 20
+        player.rect.centery = maps.y*40 + 20
+        player.x = maps.x*40 + 20
+        player.y = maps.y*40 + 20
     treasure_find = pygame.sprite.spritecollide(player, treasure, False)
     for i in treasure_find:
         ai_settings.score += i.value
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
-                                             ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+                                                 ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
     food_find = pygame.sprite.spritecollide(player, food, False)
     for i in food_find:
@@ -263,7 +300,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         else:
             player.hp = player.max_hp
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
-                                             ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
+                                                 ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
     for i in mobs_hit:
@@ -308,10 +345,10 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, first_draw=1):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1):
     screen.fill([255, 0, 0])
     draw_lvl(walls, ai_settings, screen, maps,
-             mobs_spawn, exits, treasure, foods, first_draw)
+             mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
     walls.update()
     walls.draw(screen)
     all_sprites.update()
@@ -320,6 +357,10 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs_spawn.draw(screen)
     exits.update()
     exits.draw(screen)
+    keys.update()
+    keys.draw(screen)
+    doors.update()
+    doors.draw(screen)
     treasure.update()
     treasure.draw(screen)
     foods.update()
@@ -329,7 +370,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs.update()
     mobs.draw(screen)
     object_hit(player, walls, mobs_spawn, mobs,
-               ai_settings, exits, treasure, foods, maps)
+               ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
@@ -341,6 +382,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
               18, ai_settings.screen_width*0.90, 70)
     draw_text(screen, 'LVL '+str(ai_settings.current_lvl),
               18, ai_settings.screen_width*0.90, 100)
+    draw_text(screen, 'KEYS: '+str(player.keys),
+              18, ai_settings.screen_width*0.90, 130)
     pygame.display.flip()
 
 
