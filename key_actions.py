@@ -90,7 +90,12 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
             player.y = maps.y*40 + 20
         ai_settings.game_status = 1
     elif event.key == pygame.K_c:
-        path_find(maps, player, mobs)
+        if ai_settings.algorithm == 'bfs':
+            ai_settings.algorithm = 'dfs'
+        elif ai_settings.algorithm == 'dfs':
+            ai_settings.algorithm = 'bfs'
+        # else:
+        #    ai_settings.algorithm = 'bfs'
 
 
 def keyup(event, player):
@@ -371,7 +376,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     s = pygame.Surface((40, 40))
     s.set_alpha(128)
     s.fill((160, 0, 120))
-    paths = path_find(maps, player, mobs)
+    paths = path_find(maps, player, mobs, ai_settings.algorithm)
     for i in paths:
         screen.blit(s, (i[1]*40, i[0]*40))
     object_hit(player, walls, mobs_spawn, mobs,
@@ -389,6 +394,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
               18, ai_settings.screen_width*0.90, 100)
     draw_text(screen, 'KEYS: '+str(player.keys),
               18, ai_settings.screen_width*0.90, 130)
+    draw_text(screen, 'Algorithm: '+ai_settings.algorithm,
+              18, ai_settings.screen_width*0.90, 170)
     pygame.display.flip()
 
 
@@ -421,7 +428,7 @@ def draw_win_screen(screen, ai_settings):
     pygame.display.flip()
 
 
-def path_find(maps, player, mobs):
+def path_find(maps, player, mobs, alg='bfs'):
     mobs_center_coord = []
     for i in mobs:
         #i.speed = 0
@@ -473,8 +480,6 @@ def path_find(maps, player, mobs):
     # print(graph_to_key)
     # print('-------------------')
     # print(graph_to_exit)
-    visited = []
-    stack = []
     key_coor = None
     exit_coor = None
     for i in range(len(full_map)):
@@ -483,15 +488,20 @@ def path_find(maps, player, mobs):
         if 9 in full_map[i]:
             exit_coor = (i, full_map[i].index(9))
     # print('\n--------+-')
-    dfs_path = dfs(graph_to_exit, (int(player.rect.centery/40),
+    if alg == 'bfs':
+        path = bfs(graph_to_exit, (int(player.rect.centery/40),
                                    int(player.rect.centerx/40)), exit_coor)
-    return dfs_path
+    elif alg == 'dfs':
+        path = dfs(graph_to_exit, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), exit_coor)
+    else:
+        path = []
+    return path
 
 
 def dfs(graph_adj, start, end):
     stack = [(start, [start])]
     visited = []
-    # print(start)
     while stack:
         (v, path) = stack.pop()
 
@@ -501,4 +511,25 @@ def dfs(graph_adj, start, end):
             visited.append(v)
             for n in graph_adj[v]:
                 stack.append((n, path + [n]))
+    return []
+
+
+def bfs(graph, start, end):
+    visited = []
+    queue = [[start]]
+    if start == end:
+        print("Same Node")
+        return
+    while queue:
+        path = queue.pop(0)
+        node = path[-1]
+        if node not in visited:
+            neighbours = graph[node]
+            for neighbour in neighbours:
+                new_path = list(path)
+                new_path.append(neighbour)
+                queue.append(new_path)
+                if neighbour == end:
+                    return new_path
+            visited.append(node)
     return []
