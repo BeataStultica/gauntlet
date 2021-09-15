@@ -1,5 +1,6 @@
 import sys
 import copy
+from queue import PriorityQueue
 import pygame
 from arrow import Arrow
 from wall import Wall
@@ -10,6 +11,7 @@ from treasure import Treasure
 from foods import Food
 from key import Key
 from door import Door
+import time
 
 
 def change_sprite(side):
@@ -93,9 +95,9 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
         if ai_settings.algorithm == 'bfs':
             ai_settings.algorithm = 'dfs'
         elif ai_settings.algorithm == 'dfs':
+            ai_settings.algorithm = 'ucs'
+        else:
             ai_settings.algorithm = 'bfs'
-        # else:
-        #    ai_settings.algorithm = 'bfs'
 
 
 def keyup(event, player):
@@ -376,9 +378,49 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     s = pygame.Surface((40, 40))
     s.set_alpha(128)
     s.fill((160, 0, 120))
-    paths = path_find(maps, player, mobs, ai_settings.algorithm)
-    for i in paths:
+    s2 = pygame.Surface((40, 40))
+    s2.set_alpha(128)
+    s2.fill((0, 160, 120))
+    (graph_to_key, graph_to_exit, key_coor, exit_coor) = path_find(
+        maps, player, mobs, ai_settings.algorithm)
+    if ai_settings.algorithm == 'bfs':
+        paths_exit = bfs(graph_to_exit, (int(player.rect.centery/40),
+                                         int(player.rect.centerx/40)), exit_coor)
+        paths_key = bfs(graph_to_key, (int(player.rect.centery/40),
+                                       int(player.rect.centerx/40)), key_coor)
+    elif ai_settings.algorithm == 'dfs':
+        paths_exit = dfs(graph_to_exit, (int(player.rect.centery/40),
+                                         int(player.rect.centerx/40)), exit_coor)
+        paths_key = dfs(graph_to_key, (int(player.rect.centery/40),
+                                       int(player.rect.centerx/40)), key_coor)
+    else:
+        paths_exit = ucs(graph_to_exit, (int(player.rect.centery/40),
+                                         int(player.rect.centerx/40)), exit_coor)
+        paths_key = ucs(graph_to_key, (int(player.rect.centery/40),
+                                       int(player.rect.centerx/40)), key_coor)
+    for i in paths_exit:
         screen.blit(s, (i[1]*40, i[0]*40))
+    for i in paths_key:
+        screen.blit(s2, (i[1]*40, i[0]*40))
+    if first_draw:
+        time1 = time.time()
+        for i in range(100):
+            dfs(graph_to_exit, (int(player.rect.centery/40),
+                                int(player.rect.centerx/40)), exit_coor)
+        time_dfs = (time.time() - time1)*10
+        time2 = time.time()
+        for i in range(100):
+            bfs(graph_to_exit, (int(player.rect.centery/40),
+                                int(player.rect.centerx/40)), exit_coor)
+        time_bfs = (time.time() - time2)*10
+        time3 = time.time()
+        for i in range(100):
+            ucs(graph_to_exit, (int(player.rect.centery/40),
+                                int(player.rect.centerx/40)), exit_coor)
+        time_ucs = (time.time() - time3)*10
+        ai_settings.time_dfs = time_dfs
+        ai_settings.time_bfs = time_bfs
+        ai_settings.time_ucs = time_ucs
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
@@ -386,6 +428,12 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     arrows.draw(screen)
     arrow_damage(mobs, arrows, mobs_spawn, player,
                  ai_settings, walls, treasure, foods, maps)
+    draw_text(screen, 'DFS time(ms): '+str(ai_settings.time_dfs)[:5],
+              18, ai_settings.screen_width*0.90, 210)
+    draw_text(screen, 'BFS time(ms): '+str(ai_settings.time_bfs)[:5],
+              18, ai_settings.screen_width*0.90, 250)
+    draw_text(screen, 'UCS time(ms): '+str(ai_settings.time_ucs)[:5],
+              18, ai_settings.screen_width*0.90, 290)
     draw_text(screen, 'HP: '+str(int(player.hp)), 18,
               ai_settings.screen_width*0.90, 40)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
@@ -431,7 +479,6 @@ def draw_win_screen(screen, ai_settings):
 def path_find(maps, player, mobs, alg='bfs'):
     mobs_center_coord = []
     for i in mobs:
-        #i.speed = 0
         mobs_center_coord.append(
             [int(i.rect.centerx/40), int(i.rect.centery/40)])
     full_map = copy.deepcopy(maps.tilemap1)
@@ -488,6 +535,7 @@ def path_find(maps, player, mobs, alg='bfs'):
         if 9 in full_map[i]:
             exit_coor = (i, full_map[i].index(9))
     # print('\n--------+-')
+    '''
     if alg == 'bfs':
         path = bfs(graph_to_exit, (int(player.rect.centery/40),
                                    int(player.rect.centerx/40)), exit_coor)
@@ -495,8 +543,10 @@ def path_find(maps, player, mobs, alg='bfs'):
         path = dfs(graph_to_exit, (int(player.rect.centery/40),
                                    int(player.rect.centerx/40)), exit_coor)
     else:
-        path = []
-    return path
+        path = ucs(graph_to_exit, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), exit_coor)
+    '''
+    return (graph_to_key, graph_to_exit, key_coor, exit_coor)
 
 
 def dfs(graph_adj, start, end):
@@ -518,18 +568,37 @@ def bfs(graph, start, end):
     visited = []
     queue = [[start]]
     if start == end:
-        print("Same Node")
-        return
+        return []
     while queue:
         path = queue.pop(0)
         node = path[-1]
         if node not in visited:
             neighbours = graph[node]
             for neighbour in neighbours:
-                new_path = list(path)
-                new_path.append(neighbour)
-                queue.append(new_path)
-                if neighbour == end:
-                    return new_path
+                if neighbour not in visited:
+                    new_path = list(path)
+                    new_path.append(neighbour)
+                    queue.append(new_path)
+                    if neighbour == end:
+                        return new_path
+            visited.append(node)
+    return []
+
+
+def ucs(graph, start, end):
+    visited = []
+    queue = PriorityQueue()
+    queue.put((0, start, [start]))
+    if start == end:
+        return []
+    while queue:
+        cost, node, path = queue.get()
+        if node not in visited:
+            neighbours = graph[node]
+            for neighbour in neighbours:
+                if neighbour not in visited:
+                    queue.put((cost+1, neighbour, path+[neighbour]))
+                    if neighbour == end:
+                        return path + [neighbour]
             visited.append(node)
     return []

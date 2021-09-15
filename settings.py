@@ -13,3 +13,6 @@ class Settings:
         self.score = 0
         self.current_lvl = 1
         self.algorithm = 'bfs'
+        self.time_dfs = '-'
+        self.time_bfs = '-'
+        self.time_ucs = '-'
