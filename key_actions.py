@@ -524,9 +524,6 @@ def path_find(maps, player, mobs, alg='bfs'):
                     graph_to_exit[(i, j)] = [(i, j+1)]
                 elif full_map[i][j+1] not in forb_to_exit:
                     graph_to_exit[(i, j)].append((i, j+1))
-    # print(graph_to_key)
-    # print('-------------------')
-    # print(graph_to_exit)
     key_coor = None
     exit_coor = None
     for i in range(len(full_map)):
@@ -534,18 +531,6 @@ def path_find(maps, player, mobs, alg='bfs'):
             key_coor = (i, full_map[i].index(8))
         if 9 in full_map[i]:
             exit_coor = (i, full_map[i].index(9))
-    # print('\n--------+-')
-    '''
-    if alg == 'bfs':
-        path = bfs(graph_to_exit, (int(player.rect.centery/40),
-                                   int(player.rect.centerx/40)), exit_coor)
-    elif alg == 'dfs':
-        path = dfs(graph_to_exit, (int(player.rect.centery/40),
-                                   int(player.rect.centerx/40)), exit_coor)
-    else:
-        path = ucs(graph_to_exit, (int(player.rect.centery/40),
-                                   int(player.rect.centerx/40)), exit_coor)
-    '''
     return (graph_to_key, graph_to_exit, key_coor, exit_coor)
 
 
@@ -560,7 +545,8 @@ def dfs(graph_adj, start, end):
                 return path
             visited.append(v)
             for n in graph_adj[v]:
-                stack.append((n, path + [n]))
+                if n not in visited:
+                    stack.append((n, path + [n]))
     return []
 
 
@@ -574,12 +560,12 @@ def bfs(graph, start, end):
         node = path[-1]
         if node not in visited:
             neighbours = graph[node]
-            for neighbour in neighbours:
-                if neighbour not in visited:
+            for n in neighbours:
+                if n not in visited:
                     new_path = list(path)
-                    new_path.append(neighbour)
+                    new_path.append(n)
                     queue.append(new_path)
-                    if neighbour == end:
+                    if n == end:
                         return new_path
             visited.append(node)
     return []
@@ -595,10 +581,10 @@ def ucs(graph, start, end):
         cost, node, path = queue.get()
         if node not in visited:
             neighbours = graph[node]
-            for neighbour in neighbours:
-                if neighbour not in visited:
-                    queue.put((cost+1, neighbour, path+[neighbour]))
-                    if neighbour == end:
-                        return path + [neighbour]
+            for n in neighbours:
+                if n not in visited:
+                    queue.put((cost+1, n, path+[n]))
+                    if n == end:
+                        return path + [n]
             visited.append(node)
     return []
