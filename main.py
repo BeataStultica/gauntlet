@@ -24,6 +24,8 @@ class GauntletGame:
         self.mobs_spawns = pygame.sprite.Group()
         self.treasure = pygame.sprite.Group()
         self.foods = pygame.sprite.Group()
+        self.keys = pygame.sprite.Group()
+        self.doors = pygame.sprite.Group()
         self.lvl = 1
         pygame.display.set_caption("Gauntlet")
 
@@ -40,7 +42,17 @@ class GauntletGame:
             i.kill()
         for i in self.foods:
             i.kill()
-        self.player.mobs_limit = 50
+        for i in self.keys:
+            i.kill()
+        for i in self.doors:
+            i.kill()
+        self.maps = Map()
+        self.maps.lvl_generate()
+        self.player.rect.centerx = self.maps.x*40 + 20
+        self.player.rect.centery = self.maps.y*40 + 20
+        self.player.x = self.maps.x*40 + 20
+        self.player.y = self.maps.y*40 + 20
+        self.player.mobs_limit = 5
 
     def new_game(self):
         self.lvl = 1
@@ -55,7 +67,7 @@ class GauntletGame:
         while True:
             self.clock.tick(60)
             k_a.check_game_event(self.settings, self.screen,
-                                 self.player, self.arrows)
+                                 self.player, self.arrows, self.maps, self.mobs)
             if self.settings.game_status == 0:
                 k_a.draw_menu_screen(self.screen,  self.settings)
                 self.clean_after_dead()
@@ -63,7 +75,7 @@ class GauntletGame:
                 self.first_draw = 1
             elif self.settings.game_status == 1:
                 k_a.update_screen(self.settings, self.screen,
-                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.first_draw)
+                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw)
                 if self.lvl == self.settings.current_lvl:
                     self.first_draw = 0
                 else:
