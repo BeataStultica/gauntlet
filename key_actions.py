@@ -470,3 +470,30 @@ def path_find(maps, player, mobs):
     print(graph_to_key)
     print('-------------------')
     print(graph_to_exit)
+    visited = []
+    stack = []
+    key_coor = None
+    exit_coor = None
+    for i in range(len(full_map)):
+        if 8 in full_map[i]:
+            key_coor = (i, full_map[i].index(8))
+        if 9 in full_map[i]:
+            exit_coor = (i, full_map[i].index(9))
+    print('\n--------+-')
+    print(dfs(graph_to_exit, (int(player.rect.y/40),
+                              int(player.rect.x/40)), exit_coor))
+
+
+def dfs(graph_adj, start, end):
+    stack = [(start, [start])]
+    visited = []
+    print(start)
+    while stack:
+        (v, path) = stack.pop()
+
+        if v not in visited:
+            if v == end:
+                return path
+            visited.append(v)
+            for n in graph_adj[v]:
+                stack.append((n, path + [n]))
