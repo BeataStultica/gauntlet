@@ -98,6 +98,11 @@ class Map:
                 if self.tilemap1[y][x] == 0:
                     self.tilemap1[y][x] == 9
                     break
+        near_exit = [[exit_y-1, exit_x], [exit_y, exit_x-1], [exit_y+1, exit_x], [exit_y, exit_x+1],
+                     [exit_y-1, exit_x-1], [exit_y+1, exit_x+1], [exit_y+1, exit_x-1], [exit_y-1, exit_x+1]]
+        for i in near_exit:
+            if self.tilemap1[i[0]][i[1]] != 1 and self.tilemap1[i[0]][i[1]] != 8:
+                self.tilemap1[i[0]][i[1]] = 7
         while treas_amount:
             x = random.randint(1, 21)
             y = random.randint(1, 13)
@@ -116,8 +121,3 @@ class Map:
             if self.tilemap1[y][x] == 0 and self.tilemap1[y][x-1] == 0:
                 self.tilemap1[y][x] = 3
                 spawn_mob -= 1
-        near_exit = [[exit_y-1, exit_x], [exit_y, exit_x-1], [exit_y+1, exit_x], [exit_y, exit_x+1],
-                     [exit_y-1, exit_x-1], [exit_y+1, exit_x+1], [exit_y+1, exit_x-1], [exit_y-1, exit_x+1]]
-        for i in near_exit:
-            if self.tilemap1[i[0]][i[1]] != 1 and self.tilemap1[i[0]][i[1]] != 8:
-                self.tilemap1[i[0]][i[1]] = 7

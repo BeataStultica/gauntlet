@@ -243,7 +243,7 @@ def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, food
                             (column*40, row*40), (0, 0, 40, 40))
 
 
-def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure, foods):
+def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure, foods, maps):
     pygame.sprite.groupcollide(walls, arrows, False, True)
     pygame.sprite.groupcollide(treasure, arrows, False, True)
     pygame.sprite.groupcollide(foods, arrows, False, True)
@@ -254,6 +254,7 @@ def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure,
         if i.hp <= 0:
             i.kill()
             ai_settings.score += i.cost
+            maps.tilemap1[int(i.y/40)][int(i.x/40)] = 0
     for i in damaged_mobs:
         i.hp -= player.atk
         if i.hp <= 0:
@@ -349,10 +350,6 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
     walls.update()
     walls.draw(screen)
-    s = pygame.Surface((40, 40))
-    s.set_alpha(128)
-    s.fill((160, 0, 120))
-    screen.blit(s, (40, 40))
     all_sprites.update()
     all_sprites.draw(screen)
     mobs_spawn.update()
@@ -371,13 +368,19 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn)
     mobs.update()
     mobs.draw(screen)
+    s = pygame.Surface((40, 40))
+    s.set_alpha(128)
+    s.fill((160, 0, 120))
+    paths = path_find(maps, player, mobs)
+    for i in paths:
+        screen.blit(s, (i[1]*40, i[0]*40))
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
     arrows.update()
     arrows.draw(screen)
     arrow_damage(mobs, arrows, mobs_spawn, player,
-                 ai_settings, walls, treasure, foods)
+                 ai_settings, walls, treasure, foods, maps)
     draw_text(screen, 'HP: '+str(int(player.hp)), 18,
               ai_settings.screen_width*0.90, 40)
     draw_text(screen, 'SCORE: '+str(ai_settings.score),
@@ -421,7 +424,7 @@ def draw_win_screen(screen, ai_settings):
 def path_find(maps, player, mobs):
     mobs_center_coord = []
     for i in mobs:
-        i.speed = 0
+        #i.speed = 0
         mobs_center_coord.append(
             [int(i.rect.centerx/40), int(i.rect.centery/40)])
     full_map = copy.deepcopy(maps.tilemap1)
@@ -467,9 +470,9 @@ def path_find(maps, player, mobs):
                     graph_to_exit[(i, j)] = [(i, j+1)]
                 elif full_map[i][j+1] not in forb_to_exit:
                     graph_to_exit[(i, j)].append((i, j+1))
-    print(graph_to_key)
-    print('-------------------')
-    print(graph_to_exit)
+    # print(graph_to_key)
+    # print('-------------------')
+    # print(graph_to_exit)
     visited = []
     stack = []
     key_coor = None
@@ -479,15 +482,16 @@ def path_find(maps, player, mobs):
             key_coor = (i, full_map[i].index(8))
         if 9 in full_map[i]:
             exit_coor = (i, full_map[i].index(9))
-    print('\n--------+-')
-    print(dfs(graph_to_exit, (int(player.rect.y/40),
-                              int(player.rect.x/40)), exit_coor))
+    # print('\n--------+-')
+    dfs_path = dfs(graph_to_exit, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), exit_coor)
+    return dfs_path
 
 
 def dfs(graph_adj, start, end):
     stack = [(start, [start])]
     visited = []
-    print(start)
+    # print(start)
     while stack:
         (v, path) = stack.pop()
 
@@ -497,3 +501,4 @@ def dfs(graph_adj, start, end):
             visited.append(v)
             for n in graph_adj[v]:
                 stack.append((n, path + [n]))
+    return []
