@@ -1,4 +1,5 @@
 import sys
+import copy
 import pygame
 from arrow import Arrow
 from wall import Wall
@@ -28,7 +29,7 @@ def change_sprite(side):
     return image
 
 
-def check_keydown_events(event, ai_settings, screen, player, arrows, maps):
+def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs):
     if event.key == pygame.K_z:
         fire_arrow(ai_settings, arrows, screen, player)
     elif event.key == pygame.K_RIGHT:
@@ -88,6 +89,8 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps):
             player.x = maps.x*40 + 20
             player.y = maps.y*40 + 20
         ai_settings.game_status = 1
+    elif event.key == pygame.K_c:
+        path_find(maps, player, mobs)
 
 
 def keyup(event, player):
@@ -148,13 +151,13 @@ def keyup(event, player):
         sys.exit()
 
 
-def check_game_event(ai_settings, screen, player, arrows, maps):
+def check_game_event(ai_settings, screen, player, arrows, maps, mobs):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
             check_keydown_events(event, ai_settings,
-                                 screen, player, arrows, maps)
+                                 screen, player, arrows, maps, mobs)
         elif event.type == pygame.KEYUP:
             keyup(event, player)
 
@@ -282,11 +285,6 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
     if next_lvl:
         next_lvl[0].kill()
         ai_settings.current_lvl += 1
-        maps.lvl_generate()
-        player.rect.centerx = maps.x*40 + 20
-        player.rect.centery = maps.y*40 + 20
-        player.x = maps.x*40 + 20
-        player.y = maps.y*40 + 20
     treasure_find = pygame.sprite.spritecollide(player, treasure, False)
     for i in treasure_find:
         ai_settings.score += i.value
@@ -351,6 +349,10 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
     walls.update()
     walls.draw(screen)
+    s = pygame.Surface((40, 40))
+    s.set_alpha(128)
+    s.fill((160, 0, 120))
+    screen.blit(s, (40, 40))
     all_sprites.update()
     all_sprites.draw(screen)
     mobs_spawn.update()
@@ -414,3 +416,57 @@ def draw_win_screen(screen, ai_settings):
     draw_text(screen, 'Press Esc to go menu or X to restart',
               38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 100)
     pygame.display.flip()
+
+
+def path_find(maps, player, mobs):
+    mobs_center_coord = []
+    for i in mobs:
+        i.speed = 0
+        mobs_center_coord.append(
+            [int(i.rect.centerx/40), int(i.rect.centery/40)])
+    full_map = copy.deepcopy(maps.tilemap1)
+    for i in mobs_center_coord:
+        full_map[i[1]][i[0]] = 1
+    graph_to_key = {}
+    graph_to_exit = {}
+    forb_to_key = [1, 3, 7, 9]
+    forb_to_exit = [1, 3]
+    for i in range(len(full_map)):
+        for j in range(len(full_map[i])):
+            if full_map[i][j] not in forb_to_key:
+                if full_map[i+1][j] not in forb_to_key and graph_to_key.get((i, j)) is None:
+                    graph_to_key[(i, j)] = [(i+1, j)]
+                elif full_map[i+1][j] not in forb_to_key:
+                    graph_to_key[(i, j)].append((i+1, j))
+                if full_map[i-1][j] not in forb_to_key and graph_to_key.get((i, j)) is None:
+                    graph_to_key[(i, j)] = [(i-1, j)]
+                elif full_map[i-1][j] not in forb_to_key:
+                    graph_to_key[(i, j)].append((i-1, j))
+                if full_map[i][j-1] not in forb_to_key and graph_to_key.get((i, j)) is None:
+                    graph_to_key[(i, j)] = [(i, j-1)]
+                elif full_map[i][j-1] not in forb_to_key:
+                    graph_to_key[(i, j)].append((i, j-1))
+                if full_map[i][j+1] not in forb_to_key and graph_to_key.get((i, j)) is None:
+                    graph_to_key[(i, j)] = [(i, j+1)]
+                elif full_map[i][j+1] not in forb_to_key:
+                    graph_to_key[(i, j)].append((i, j+1))
+            if full_map[i][j] not in forb_to_exit:
+                if full_map[i+1][j] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
+                    graph_to_exit[(i, j)] = [(i+1, j)]
+                elif full_map[i+1][j] not in forb_to_exit:
+                    graph_to_exit[(i, j)].append((i+1, j))
+                if full_map[i-1][j] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
+                    graph_to_exit[(i, j)] = [(i-1, j)]
+                elif full_map[i-1][j] not in forb_to_exit:
+                    graph_to_exit[(i, j)].append((i-1, j))
+                if full_map[i][j-1] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
+                    graph_to_exit[(i, j)] = [(i, j-1)]
+                elif full_map[i][j-1] not in forb_to_exit:
+                    graph_to_exit[(i, j)].append((i, j-1))
+                if full_map[i][j+1] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
+                    graph_to_exit[(i, j)] = [(i, j+1)]
+                elif full_map[i][j+1] not in forb_to_exit:
+                    graph_to_exit[(i, j)].append((i, j+1))
+    print(graph_to_key)
+    print('-------------------')
+    print(graph_to_exit)

@@ -67,7 +67,7 @@ class GauntletGame:
         while True:
             self.clock.tick(60)
             k_a.check_game_event(self.settings, self.screen,
-                                 self.player, self.arrows, self.maps)
+                                 self.player, self.arrows, self.maps, self.mobs)
             if self.settings.game_status == 0:
                 k_a.draw_menu_screen(self.screen,  self.settings)
                 self.clean_after_dead()
