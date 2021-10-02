@@ -399,9 +399,9 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     auto_moving_player(player, paths)
     for i in paths:
         screen.blit(s, (i[1]*40, i[0]*40))
-    # for j in mobs:
-    #    for k in j.path:
-    #       screen.blit(s2, (k[1]*40, k[0]*40))
+    for j in mobs:
+        for k in j.path:
+            screen.blit(s2, (k[1]*40, k[0]*40))
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)

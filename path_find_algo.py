@@ -2,16 +2,19 @@ import copy
 from queue import PriorityQueue
 
 
-def path_find(maps, mobs, mob=None):
+def path_find(maps, mobs):
+    full_map = copy.deepcopy(maps.tilemap1)
+    """
     mobs_center_coord = []
     for i in mobs:
         if i == mob:
             continue
         mobs_center_coord.append(
             [int(i.rect.centerx/40), int(i.rect.centery/40)])
-    full_map = copy.deepcopy(maps.tilemap1)
+    
     for i in mobs_center_coord:
         full_map[i[1]][i[0]] = 1
+    """
     graph_to_key = {}
     graph_to_exit = {}
     forb_to_key = [1, 3, 7, 9]

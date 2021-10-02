@@ -43,19 +43,30 @@ class Enemy(pygame.sprite.Sprite):
         if self.ai_settings.maps_dict is None:
             print('++')
             generate_map_dict(self.maps, self.ai_settings)
-        graph = path_find_mobs(
-            copy.deepcopy(self.ai_settings.maps_dict), self.mobs, self)
+        # graph = path_find_mobs(
+        #    copy.deepcopy(self.ai_settings.maps_dict), self.mobs, self)
         posy = int(self.rect.centery/self.block_size)
         posx = int(self.rect.centerx/self.block_size)
         playerx = int(self.player.rect.centerx/self.block_size)
         playery = int(self.player.rect.centery/self.block_size)
-        self.path = a_star_search(copy.deepcopy(
-            graph), (posy, posx), (playery, playerx))
+        self.path = bfs(
+            copy.deepcopy(self.ai_settings.maps_dict), (posy, posx), (playery, playerx))
         # print(self.path)
         mobs_l = []
         mobs_r = []
         mobs_t = []
         mobs_b = []
+
+        if len(self.path) > 1 and abs(self.rect.x - self.path[1][1]*40) < 4:
+            if int(self.rect.y/40) - self.path[1][0] == 1:
+                self.side = 4
+            if int(self.rect.centery/40) - self.path[1][0] == -1:
+                self.side = 3
+        elif len(self.path) > 1 and abs(self.rect.y - self.path[1][0]*40) < 4:
+            if int(self.rect.centerx/40) - self.path[1][1] == 1:
+                self.side = 2
+            if int(self.rect.centerx/40) - self.path[1][1] == -1:
+                self.side = 1
         for i in self.mobs:
             if i == self:
                 continue

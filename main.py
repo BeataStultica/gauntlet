@@ -1,4 +1,5 @@
 import pygame
+from path_find_algo import generate_map_dict
 
 from player import Hero
 from settings import Settings
@@ -48,11 +49,12 @@ class GauntletGame:
             i.kill()
         self.maps = Map()
         self.maps.lvl_generate()
+        generate_map_dict(self.maps, self.settings)
         self.player.rect.centerx = self.maps.x*40 + 20
         self.player.rect.centery = self.maps.y*40 + 20
         self.player.x = self.maps.x*40 + 20
         self.player.y = self.maps.y*40 + 20
-        self.player.mobs_limit = 5
+        self.player.mobs_limit = 3
 
     def new_game(self):
         self.lvl = 1
