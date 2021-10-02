@@ -208,6 +208,8 @@ def draw_text(surf, text, size, x, y):
 
 
 def draw_lvl(walls, ai_settings, screen, maps, mobs_spawn, exits, treasure, foods, keys, doors, flag):
+    if flag:
+        generate_map_dict(maps, ai_settings)
     lvl = maps.levels[ai_settings.current_lvl]
     for row in range(len(lvl)):
         for column in range(len(lvl[0])):
@@ -432,7 +434,7 @@ def auto_moving_player(player, path):
     newevent_up = pygame.event.Event(
         pygame.KEYUP, key=pygame.K_UP)
     for i in path[1:]:
-        if abs(player.rect.x - i[1]*40) < 4:
+        if abs(player.rect.x - i[1]*40) < 2:
             if int(player.rect.y/40) - i[0] == 1:
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_UP)
@@ -453,7 +455,7 @@ def auto_moving_player(player, path):
                 if player.moving_up:
                     pygame.event.post(newevent_up)
                 pygame.event.post(newevent)
-        elif abs(player.rect.y - i[0]*40) < 4:
+        elif abs(player.rect.y - i[0]*40) < 2:
             if int(player.rect.centerx/40) - i[1] == 1:
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_LEFT)

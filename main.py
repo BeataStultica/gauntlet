@@ -62,6 +62,7 @@ class GauntletGame:
         for i in self.all_sprites:
             i.kill()
         self.player = Hero(self.settings, self.screen)
+        generate_map_dict(self.maps, self.settings)
         self.all_sprites.add(self.player)
 
     def run_game(self):
@@ -83,7 +84,7 @@ class GauntletGame:
                 else:
                     self.first_draw = 1
                     self.lvl += 1
-                    if self.lvl == 4:
+                    if self.lvl == 7:
                         self.settings.game_status = 3
                         self.settings.current_lvl = 1
                     self.clean_after_dead()

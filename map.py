@@ -10,7 +10,7 @@ class Map:
         self.y = 1
         self.key_amount = 1
         self.levels = {1: self.tilemap1,
-                       2: self.tilemap1, 3: self.tilemap1, 4: 'win'}
+                       2: self.tilemap1, 3: self.tilemap1, 4: self.tilemap1, 5: self.tilemap1, 6: self.tilemap1, 7: 'win'}
         self.textures_floor = pygame.image.load('assets/floot.png').convert()
         self.textures_floor = pygame.transform.scale(
             self.textures_floor, (282, 146))

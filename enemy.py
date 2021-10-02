@@ -57,12 +57,12 @@ class Enemy(pygame.sprite.Sprite):
         mobs_t = []
         mobs_b = []
 
-        if len(self.path) > 1 and abs(self.rect.x - self.path[1][1]*40) < 4:
+        if len(self.path) > 1 and abs(self.rect.x - self.path[1][1]*40) < 2:
             if int(self.rect.y/40) - self.path[1][0] == 1:
                 self.side = 4
             if int(self.rect.centery/40) - self.path[1][0] == -1:
                 self.side = 3
-        elif len(self.path) > 1 and abs(self.rect.y - self.path[1][0]*40) < 4:
+        elif len(self.path) > 1 and abs(self.rect.y - self.path[1][0]*40) < 2:
             if int(self.rect.centerx/40) - self.path[1][1] == 1:
                 self.side = 2
             if int(self.rect.centerx/40) - self.path[1][1] == -1:
