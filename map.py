@@ -31,7 +31,7 @@ class Map:
         exit_y = 0
         key_x = 0
         key_y = 0
-        tonnels_numb = 90
+        tonnels_numb = 80
         max_len = 9
         while tonnels_numb != 0:
             if ((self.x - x)**2 + (self.y-y)**2)**(1/2) > 10 and exit_x == 0:

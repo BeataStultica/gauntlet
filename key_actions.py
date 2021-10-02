@@ -400,9 +400,66 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                                        int(player.rect.centerx/40)), key_coor)
     for i in paths_exit:
         screen.blit(s, (i[1]*40, i[0]*40))
+    newevent_down = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_DOWN)
+    newevent_left = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_LEFT)
+    newevent_right = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_RIGHT)
+    newevent_up = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_UP)
     for i in paths_key:
         screen.blit(s2, (i[1]*40, i[0]*40))
+        if int(player.rect.centerx/40) == i[1]:
+            if int(player.rect.centery/40) - i[0] == 1:
+                #player.moving_up = True
+                newevent = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_UP)
+                if player.moving_right:
+                    pygame.event.post(newevent_right)
+                if player.moving_left:
+                    pygame.event.post(newevent_left)
+                if player.moving_down:
+                    pygame.event.post(newevent_down)
+                pygame.event.post(newevent)
+            if int(player.rect.centery/40) - i[0] == -1:
+                #player.moving_down = True
+                newevent = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_DOWN)
+                if player.moving_right:
+                    pygame.event.post(newevent_right)
+                if player.moving_left:
+                    pygame.event.post(newevent_left)
+                if player.moving_up:
+                    pygame.event.post(newevent_up)
+                pygame.event.post(newevent)
+        elif int(player.rect.centery/40) == i[0]:
+            if int(player.rect.centerx/40) - i[1] == 1:
+                #player.moving_left = True
+                newevent = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_LEFT)
+                if player.moving_right:
+                    pygame.event.post(newevent_right)
+                if player.moving_up:
+                    pygame.event.post(newevent_up)
+                if player.moving_down:
+                    pygame.event.post(newevent_down)
+                pygame.event.post(newevent)
+            if int(player.rect.centerx/40) - i[1] == -1:
+                #player.moving_right = True
+                newevent = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_RIGHT)
+                if player.moving_up:
+                    pygame.event.post(newevent_up)
+                if player.moving_left:
+                    pygame.event.post(newevent_left)
+                if player.moving_down:
+                    pygame.event.post(newevent_down)
+                pygame.event.post(newevent)
+    # pygame.event.clear()
+    """
     if first_draw:
+    
         time1 = time.time()
         for i in range(100):
             dfs(graph_to_exit, (int(player.rect.centery/40),
@@ -421,6 +478,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         ai_settings.time_dfs = time_dfs
         ai_settings.time_bfs = time_bfs
         ai_settings.time_ucs = time_ucs
+        """
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
