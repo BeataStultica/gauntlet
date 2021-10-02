@@ -1,13 +1,18 @@
+import copy
 import pygame
 import random
+from path_find_algo import path_find, a_star_search, bfs, generate_map_dict, path_find_mobs
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, ai_settings, screen, x, y, maps, mobs):
+    def __init__(self, ai_settings, screen, x, y, maps, mobs, player):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.mobs = mobs
         self.ai_settings = ai_settings
+        self.maps = maps
+        self.player = player
+        self.path = []
         self.level = maps.levels[self.ai_settings.current_lvl]
         self.block_size = ai_settings.block_size
         self.sheet = pygame.image.load('assets/ghost.png').convert()
@@ -31,12 +36,22 @@ class Enemy(pygame.sprite.Sprite):
         self.side = 2  # 1 - r, 2 - l, 3 -b, 4 -t
         self.hp = 10
         self.atk = 200
-        self.speed = 1
+        self.speed = 2
         self.cost = 10
 
     def update(self):
+        if self.ai_settings.maps_dict is None:
+            print('++')
+            generate_map_dict(self.maps, self.ai_settings)
+        graph = path_find_mobs(
+            copy.deepcopy(self.ai_settings.maps_dict), self.mobs, self)
         posy = int(self.rect.centery/self.block_size)
         posx = int(self.rect.centerx/self.block_size)
+        playerx = int(self.player.rect.centerx/self.block_size)
+        playery = int(self.player.rect.centery/self.block_size)
+        self.path = a_star_search(copy.deepcopy(
+            graph), (posy, posx), (playery, playerx))
+        # print(self.path)
         mobs_l = []
         mobs_r = []
         mobs_t = []

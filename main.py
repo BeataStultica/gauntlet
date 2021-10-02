@@ -65,7 +65,7 @@ class GauntletGame:
     def run_game(self):
         self.first_draw = 1
         while True:
-            self.clock.tick(60)
+            self.clock.tick(30)
             k_a.check_game_event(self.settings, self.screen,
                                  self.player, self.arrows, self.maps, self.mobs)
             if self.settings.game_status == 0:

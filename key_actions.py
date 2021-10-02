@@ -1,8 +1,8 @@
 import sys
-import copy
-from queue import PriorityQueue
+
 import pygame
 from arrow import Arrow
+from path_find_algo import generate_map_dict, path_find, a_star_search, bfs
 from wall import Wall
 from enemy_spawn import EnemySpawn
 from enemy import Enemy
@@ -185,7 +185,8 @@ def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn):
                 break
         if i.timer <= 0 and player.mobs_limit > 0 and flag:
             i.timer = 1000
-            new_mob = Enemy(ai_settings, screen, i.x-30, i.y, maps, mobs)
+            new_mob = Enemy(ai_settings, screen, i.x -
+                            30, i.y, maps, mobs, player)
             mobs.add(new_mob)
             player.mobs_limit -= 1
 
@@ -281,6 +282,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
                                                  ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
+        generate_map_dict(maps, ai_settings)
     doors_c = pygame.sprite.spritecollide(player, doors, False)
     for i in doors_c:
         if player.keys >= 1:
@@ -289,6 +291,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
                                                      ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
             for j in doors:
                 j.kill()
+            generate_map_dict(maps, ai_settings)
         else:
             hits.append(i)
     if next_lvl:
@@ -300,6 +303,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
                                                  ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
+        generate_map_dict(maps, ai_settings)
     food_find = pygame.sprite.spritecollide(player, food, False)
     for i in food_find:
         if player.hp+i.value <= player.max_hp:
@@ -309,6 +313,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
                                                  ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
+        generate_map_dict(maps, ai_settings)
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
     for i in mobs_hit:
         i.kill()
@@ -383,21 +388,20 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     s2.set_alpha(128)
     s2.fill((0, 160, 120))
     (graph_to_key, graph_to_exit, key_coor, exit_coor) = path_find(
-        maps, player, mobs, ai_settings.algorithm)
+        maps, mobs)
 
-    paths_exit = bfs(graph_to_exit, (int(player.rect.centery/40),
-                                     int(player.rect.centerx/40)), exit_coor)
-    paths_key = bfs(graph_to_key, (int(player.rect.centery/40),
-                                   int(player.rect.centerx/40)), key_coor)
-    for i in paths_exit:
-        screen.blit(s, (i[1]*40, i[0]*40))
-
-    for i in paths_key:
-        screen.blit(s2, (i[1]*40, i[0]*40))
     if maps.key_amount == 0:
-        auto_moving_player(player, paths_exit)
+        paths = bfs(graph_to_exit, (int(player.rect.centery/40),
+                                    int(player.rect.centerx/40)), exit_coor)
     else:
-        auto_moving_player(player, paths_key)
+        paths = bfs(graph_to_key, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), key_coor)
+    auto_moving_player(player, paths)
+    for i in paths:
+        screen.blit(s, (i[1]*40, i[0]*40))
+    # for j in mobs:
+    #    for k in j.path:
+    #       screen.blit(s2, (k[1]*40, k[0]*40))
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
@@ -499,162 +503,3 @@ def draw_win_screen(screen, ai_settings):
     draw_text(screen, 'Press Esc to go menu or X to restart',
               38, ai_settings.screen_width/2, ai_settings.screen_height/2 + 100)
     pygame.display.flip()
-
-
-def path_find(maps, player, mobs, alg='bfs'):
-    mobs_center_coord = []
-    for i in mobs:
-        mobs_center_coord.append(
-            [int(i.rect.centerx/40), int(i.rect.centery/40)])
-    full_map = copy.deepcopy(maps.tilemap1)
-    for i in mobs_center_coord:
-        full_map[i[1]][i[0]] = 1
-    graph_to_key = {}
-    graph_to_exit = {}
-    forb_to_key = [1, 3, 7, 9]
-    forb_to_exit = [1, 3]
-    for i in range(len(full_map)):
-        for j in range(len(full_map[i])):
-            if full_map[i][j] not in forb_to_key:
-                if full_map[i+1][j] not in forb_to_key and graph_to_key.get((i, j)) is None:
-                    graph_to_key[(i, j)] = [(i+1, j)]
-                elif full_map[i+1][j] not in forb_to_key:
-                    graph_to_key[(i, j)].append((i+1, j))
-                if full_map[i-1][j] not in forb_to_key and graph_to_key.get((i, j)) is None:
-                    graph_to_key[(i, j)] = [(i-1, j)]
-                elif full_map[i-1][j] not in forb_to_key:
-                    graph_to_key[(i, j)].append((i-1, j))
-                if full_map[i][j-1] not in forb_to_key and graph_to_key.get((i, j)) is None:
-                    graph_to_key[(i, j)] = [(i, j-1)]
-                elif full_map[i][j-1] not in forb_to_key:
-                    graph_to_key[(i, j)].append((i, j-1))
-                if full_map[i][j+1] not in forb_to_key and graph_to_key.get((i, j)) is None:
-                    graph_to_key[(i, j)] = [(i, j+1)]
-                elif full_map[i][j+1] not in forb_to_key:
-                    graph_to_key[(i, j)].append((i, j+1))
-            if full_map[i][j] not in forb_to_exit:
-                if full_map[i+1][j] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
-                    graph_to_exit[(i, j)] = [(i+1, j)]
-                elif full_map[i+1][j] not in forb_to_exit:
-                    graph_to_exit[(i, j)].append((i+1, j))
-                if full_map[i-1][j] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
-                    graph_to_exit[(i, j)] = [(i-1, j)]
-                elif full_map[i-1][j] not in forb_to_exit:
-                    graph_to_exit[(i, j)].append((i-1, j))
-                if full_map[i][j-1] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
-                    graph_to_exit[(i, j)] = [(i, j-1)]
-                elif full_map[i][j-1] not in forb_to_exit:
-                    graph_to_exit[(i, j)].append((i, j-1))
-                if full_map[i][j+1] not in forb_to_exit and graph_to_exit.get((i, j)) is None:
-                    graph_to_exit[(i, j)] = [(i, j+1)]
-                elif full_map[i][j+1] not in forb_to_exit:
-                    graph_to_exit[(i, j)].append((i, j+1))
-    key_coor = None
-    exit_coor = None
-    for i in range(len(full_map)):
-        if 8 in full_map[i]:
-            key_coor = (i, full_map[i].index(8))
-        if 9 in full_map[i]:
-            exit_coor = (i, full_map[i].index(9))
-    return (graph_to_key, graph_to_exit, key_coor, exit_coor)
-
-
-def dfs(graph_adj, start, end):
-    stack = [(start, [start])]
-    visited = []
-    while stack:
-        (v, path) = stack.pop()
-
-        if v not in visited:
-            if v == end:
-                return path
-            visited.append(v)
-            for n in graph_adj[v]:
-                if n not in visited:
-                    stack.append((n, path + [n]))
-    return []
-
-
-def bfs(graph, start, end):
-    visited = []
-    queue = [[start]]
-    if start == end:
-        return []
-    while queue:
-        path = queue.pop(0)
-        node = path[-1]
-        if node not in visited and node in graph:
-            neighbours = graph[node]
-            for n in neighbours:
-                if n not in visited:
-                    new_path = list(path)
-                    new_path.append(n)
-                    queue.append(new_path)
-                    if n == end:
-                        return new_path
-            visited.append(node)
-    return []
-
-
-def ucs(graph, start, end):
-    visited = []
-    queue = PriorityQueue()
-    queue.put((0, start, [start]))
-    if start == end:
-        return []
-    while queue:
-        cost, node, path = queue.get()
-        if node not in visited:
-            neighbours = graph[node]
-            for n in neighbours:
-                if n not in visited:
-                    queue.put((cost+1, n, path+[n]))
-                    if n == end:
-                        return path + [n]
-            visited.append(node)
-    return []
-
-
-def reconstruct_path(came_from, start, goal):
-    current = goal
-    path = [current]
-    if current is None:
-        return []
-    while current != start:
-        current = came_from[current]
-        path.append(current)
-    path.append(start)
-    path.reverse()
-    return path
-
-
-def heuristic(node, n):
-    if node and n:
-        return abs(node[0] - n[0]) + abs(node[1] - n[1])
-    else:
-        return 0
-
-
-def a_star_search(graph, start, end):
-    queue = PriorityQueue()
-    queue.put(start, 0)
-    came_from = {}
-    cost_so_far = {}
-    came_from[start] = None
-    cost_so_far[start] = 0
-
-    while not queue.empty():
-        node = queue.get()
-
-        if node == end:
-            break
-        neighbours = graph[node]
-        for next in neighbours:
-            new_cost = cost_so_far[node] + 1
-            if next not in cost_so_far or new_cost < cost_so_far[next]:
-                cost_so_far[next] = new_cost
-                priority = new_cost + heuristic(end, next)
-                queue.put(next, priority)
-                came_from[next] = node
-
-    return reconstruct_path(came_from, start, end)
