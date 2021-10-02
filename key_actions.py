@@ -408,11 +408,12 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         pygame.KEYUP, key=pygame.K_RIGHT)
     newevent_up = pygame.event.Event(
         pygame.KEYUP, key=pygame.K_UP)
-    for i in paths_key:
+    # print(paths_key)
+
+    for i in paths_key[1:]:
         screen.blit(s2, (i[1]*40, i[0]*40))
-        if int(player.rect.centerx/40) == i[1]:
-            if int(player.rect.centery/40) - i[0] == 1:
-                #player.moving_up = True
+        if abs(player.rect.x - i[1]*40) < 4:
+            if int(player.rect.y/40) - i[0] == 1:
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_UP)
                 if player.moving_right:
@@ -423,7 +424,6 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                     pygame.event.post(newevent_down)
                 pygame.event.post(newevent)
             if int(player.rect.centery/40) - i[0] == -1:
-                #player.moving_down = True
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_DOWN)
                 if player.moving_right:
@@ -433,9 +433,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                 if player.moving_up:
                     pygame.event.post(newevent_up)
                 pygame.event.post(newevent)
-        elif int(player.rect.centery/40) == i[0]:
-            if int(player.rect.centerx/40) - i[1] == 1:
-                #player.moving_left = True
+        elif abs(player.rect.y - i[0]*40) < 4:
+            if int(player.rect.x/40) - i[1] == 1:
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_LEFT)
                 if player.moving_right:
@@ -446,7 +445,6 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                     pygame.event.post(newevent_down)
                 pygame.event.post(newevent)
             if int(player.rect.centerx/40) - i[1] == -1:
-                #player.moving_right = True
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_RIGHT)
                 if player.moving_up:
@@ -456,7 +454,6 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                 if player.moving_down:
                     pygame.event.post(newevent_down)
                 pygame.event.post(newevent)
-    # pygame.event.clear()
     """
     if first_draw:
     
