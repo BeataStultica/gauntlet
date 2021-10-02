@@ -8,7 +8,7 @@ class Map:
         self.tilemap1 = [[1 for i in range(0, 23)] for j in range(0, 15)]
         self.x = 1
         self.y = 1
-
+        self.key_amount = 1
         self.levels = {1: self.tilemap1,
                        2: self.tilemap1, 3: self.tilemap1, 4: 'win'}
         self.textures_floor = pygame.image.load('assets/floot.png').convert()
@@ -24,6 +24,7 @@ class Map:
         y = random.randint(1, 13)
         self.x = x
         self.y = y
+        self.key_amount = 1
         treas_amount = random.randint(2, 6)
         food_amount = random.randint(2, 6)
         spawn_mob = random.randint(1, 3)

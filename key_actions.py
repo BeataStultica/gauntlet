@@ -277,6 +277,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
     keys_c = pygame.sprite.spritecollide(player, keys, False)
     for i in keys_c:
         player.keys += 1
+        maps.key_amount -= 1
         maps.levels[ai_settings.current_lvl][int(i.rect.y /
                                                  ai_settings.block_size)][int(i.rect.x/ai_settings.block_size)] = 0
         i.kill()
@@ -383,23 +384,41 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     s2.fill((0, 160, 120))
     (graph_to_key, graph_to_exit, key_coor, exit_coor) = path_find(
         maps, player, mobs, ai_settings.algorithm)
-    if ai_settings.algorithm == 'bfs':
-        paths_exit = bfs(graph_to_exit, (int(player.rect.centery/40),
-                                         int(player.rect.centerx/40)), exit_coor)
-        paths_key = bfs(graph_to_key, (int(player.rect.centery/40),
-                                       int(player.rect.centerx/40)), key_coor)
-    elif ai_settings.algorithm == 'dfs':
-        paths_exit = dfs(graph_to_exit, (int(player.rect.centery/40),
-                                         int(player.rect.centerx/40)), exit_coor)
-        paths_key = dfs(graph_to_key, (int(player.rect.centery/40),
-                                       int(player.rect.centerx/40)), key_coor)
-    else:
-        paths_exit = ucs(graph_to_exit, (int(player.rect.centery/40),
-                                         int(player.rect.centerx/40)), exit_coor)
-        paths_key = ucs(graph_to_key, (int(player.rect.centery/40),
-                                       int(player.rect.centerx/40)), key_coor)
+
+    paths_exit = bfs(graph_to_exit, (int(player.rect.centery/40),
+                                     int(player.rect.centerx/40)), exit_coor)
+    paths_key = bfs(graph_to_key, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), key_coor)
     for i in paths_exit:
         screen.blit(s, (i[1]*40, i[0]*40))
+
+    for i in paths_key:
+        screen.blit(s2, (i[1]*40, i[0]*40))
+    if maps.key_amount == 0:
+        auto_moving_player(player, paths_exit)
+    else:
+        auto_moving_player(player, paths_key)
+    object_hit(player, walls, mobs_spawn, mobs,
+               ai_settings, exits, treasure, foods, keys, doors, maps)
+    update_arrows(arrows, ai_settings)
+    arrows.update()
+    arrows.draw(screen)
+    arrow_damage(mobs, arrows, mobs_spawn, player,
+                 ai_settings, walls, treasure, foods, maps)
+    draw_text(screen, 'HP: '+str(int(player.hp)), 18,
+              ai_settings.screen_width*0.90, 40)
+    draw_text(screen, 'SCORE: '+str(ai_settings.score),
+              18, ai_settings.screen_width*0.90, 70)
+    draw_text(screen, 'LVL '+str(ai_settings.current_lvl),
+              18, ai_settings.screen_width*0.90, 100)
+    draw_text(screen, 'KEYS: '+str(player.keys),
+              18, ai_settings.screen_width*0.90, 130)
+    draw_text(screen, 'Algorithm: '+"bfs",
+              18, ai_settings.screen_width*0.90, 170)
+    pygame.display.flip()
+
+
+def auto_moving_player(player, path):
     newevent_down = pygame.event.Event(
         pygame.KEYUP, key=pygame.K_DOWN)
     newevent_left = pygame.event.Event(
@@ -408,10 +427,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         pygame.KEYUP, key=pygame.K_RIGHT)
     newevent_up = pygame.event.Event(
         pygame.KEYUP, key=pygame.K_UP)
-    # print(paths_key)
-
-    for i in paths_key[1:]:
-        screen.blit(s2, (i[1]*40, i[0]*40))
+    for i in path[1:]:
         if abs(player.rect.x - i[1]*40) < 4:
             if int(player.rect.y/40) - i[0] == 1:
                 newevent = pygame.event.Event(
@@ -434,7 +450,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                     pygame.event.post(newevent_up)
                 pygame.event.post(newevent)
         elif abs(player.rect.y - i[0]*40) < 4:
-            if int(player.rect.x/40) - i[1] == 1:
+            if int(player.rect.centerx/40) - i[1] == 1:
                 newevent = pygame.event.Event(
                     pygame.KEYDOWN, key=pygame.K_LEFT)
                 if player.moving_right:
@@ -454,52 +470,6 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                 if player.moving_down:
                     pygame.event.post(newevent_down)
                 pygame.event.post(newevent)
-    """
-    if first_draw:
-    
-        time1 = time.time()
-        for i in range(100):
-            dfs(graph_to_exit, (int(player.rect.centery/40),
-                                int(player.rect.centerx/40)), exit_coor)
-        time_dfs = (time.time() - time1)*10
-        time2 = time.time()
-        for i in range(100):
-            bfs(graph_to_exit, (int(player.rect.centery/40),
-                                int(player.rect.centerx/40)), exit_coor)
-        time_bfs = (time.time() - time2)*10
-        time3 = time.time()
-        for i in range(100):
-            ucs(graph_to_exit, (int(player.rect.centery/40),
-                                int(player.rect.centerx/40)), exit_coor)
-        time_ucs = (time.time() - time3)*10
-        ai_settings.time_dfs = time_dfs
-        ai_settings.time_bfs = time_bfs
-        ai_settings.time_ucs = time_ucs
-        """
-    object_hit(player, walls, mobs_spawn, mobs,
-               ai_settings, exits, treasure, foods, keys, doors, maps)
-    update_arrows(arrows, ai_settings)
-    arrows.update()
-    arrows.draw(screen)
-    arrow_damage(mobs, arrows, mobs_spawn, player,
-                 ai_settings, walls, treasure, foods, maps)
-    draw_text(screen, 'DFS time(ms): '+str(ai_settings.time_dfs)[:5],
-              18, ai_settings.screen_width*0.90, 210)
-    draw_text(screen, 'BFS time(ms): '+str(ai_settings.time_bfs)[:5],
-              18, ai_settings.screen_width*0.90, 250)
-    draw_text(screen, 'UCS time(ms): '+str(ai_settings.time_ucs)[:5],
-              18, ai_settings.screen_width*0.90, 290)
-    draw_text(screen, 'HP: '+str(int(player.hp)), 18,
-              ai_settings.screen_width*0.90, 40)
-    draw_text(screen, 'SCORE: '+str(ai_settings.score),
-              18, ai_settings.screen_width*0.90, 70)
-    draw_text(screen, 'LVL '+str(ai_settings.current_lvl),
-              18, ai_settings.screen_width*0.90, 100)
-    draw_text(screen, 'KEYS: '+str(player.keys),
-              18, ai_settings.screen_width*0.90, 130)
-    draw_text(screen, 'Algorithm: '+ai_settings.algorithm,
-              18, ai_settings.screen_width*0.90, 170)
-    pygame.display.flip()
 
 
 def draw_end_screen(screen, ai_settings):
@@ -613,7 +583,7 @@ def bfs(graph, start, end):
     while queue:
         path = queue.pop(0)
         node = path[-1]
-        if node not in visited:
+        if node not in visited and node in graph:
             neighbours = graph[node]
             for n in neighbours:
                 if n not in visited:
@@ -643,3 +613,48 @@ def ucs(graph, start, end):
                         return path + [n]
             visited.append(node)
     return []
+
+
+def reconstruct_path(came_from, start, goal):
+    current = goal
+    path = [current]
+    if current is None:
+        return []
+    while current != start:
+        current = came_from[current]
+        path.append(current)
+    path.append(start)
+    path.reverse()
+    return path
+
+
+def heuristic(node, n):
+    if node and n:
+        return abs(node[0] - n[0]) + abs(node[1] - n[1])
+    else:
+        return 0
+
+
+def a_star_search(graph, start, end):
+    queue = PriorityQueue()
+    queue.put(start, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start] = None
+    cost_so_far[start] = 0
+
+    while not queue.empty():
+        node = queue.get()
+
+        if node == end:
+            break
+        neighbours = graph[node]
+        for next in neighbours:
+            new_cost = cost_so_far[node] + 1
+            if next not in cost_so_far or new_cost < cost_so_far[next]:
+                cost_so_far[next] = new_cost
+                priority = new_cost + heuristic(end, next)
+                queue.put(next, priority)
+                came_from[next] = node
+
+    return reconstruct_path(came_from, start, end)
