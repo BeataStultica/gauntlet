@@ -184,7 +184,7 @@ def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows):
                 flag = False
                 break
         if i.timer <= 0 and player.mobs_limit > 0 and flag:
-            i.timer = 1000
+            i.timer = 2000
             new_mob = Enemy(ai_settings, screen, i.x -
                             30, i.y, maps, mobs, player, arrows)
             mobs.add(new_mob)
@@ -464,17 +464,17 @@ def check_unfire(player, i, maps):
 def check_arrow_path(maps, x, y, x1=False, y1=False):
     if x1:
         if x1 > x:
-            return maps.tilemap1[y][x:x1].count(0) == len(maps.tilemap1[y][x:x1])
+            return maps.tilemap1[y][x:x1].count(0)+maps.tilemap1[y][x:x1].count(3) == len(maps.tilemap1[y][x:x1])
         else:
-            return maps.tilemap1[y][x1:x].count(0) == len(maps.tilemap1[y][x1:x])
+            return maps.tilemap1[y][x1:x].count(0)+maps.tilemap1[y][x1:x].count(3) == len(maps.tilemap1[y][x1:x])
     else:
         if y1 > y:
             for i in maps.tilemap1[y:y1]:
-                if i[x] != 0:
+                if i[x] not in [0,3]:
                     return False
         else:
             for i in maps.tilemap1[y1:y]:
-                if i[x] != 0:
+                if i[x] not in [0,3]:
                     return False
         return True
 
