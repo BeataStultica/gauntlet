@@ -400,13 +400,13 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                                    int(player.rect.centerx/40)), key_coor)
     auto_moving_player(player, paths)
     auto_fire(player, mobs_spawn, mobs, maps)
-    '''
+
     for i in paths:
         screen.blit(s, (i[1]*40, i[0]*40))
     for j in mobs:
         for k in j.path:
             screen.blit(s2, (k[1]*40, k[0]*40))
-    '''
+
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
@@ -470,11 +470,11 @@ def check_arrow_path(maps, x, y, x1=False, y1=False):
     else:
         if y1 > y:
             for i in maps.tilemap1[y:y1]:
-                if i[x] not in [0,3]:
+                if i[x] not in [0, 3]:
                     return False
         else:
             for i in maps.tilemap1[y1:y]:
-                if i[x] not in [0,3]:
+                if i[x] not in [0, 3]:
                     return False
         return True
 

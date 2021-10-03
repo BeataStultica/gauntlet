@@ -1,5 +1,5 @@
 import copy
-from queue import PriorityQueue
+from queues import PriorityQueue
 
 
 def path_find(maps, mobs=False):
@@ -191,7 +191,7 @@ def reconstruct_path(came_from, start, goal):
 
 def heuristic(node, n):
     if node and n:
-        return 0  # ((node[0] - n[0])**2 + (node[1] - n[1])**2)**(1/2)/2
+        return ((node[0] - n[0])**2 + (node[1] - n[1])**2)**(1/2)
     else:
         return 0
 
