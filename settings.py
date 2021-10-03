@@ -16,3 +16,4 @@ class Settings:
         self.time_dfs = '-'
         self.time_bfs = '-'
         self.time_ucs = '-'
+        self.maps_dict = None

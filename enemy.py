@@ -1,13 +1,19 @@
+import copy
 import pygame
 import random
+from path_find_algo import path_find, a_star_search, bfs, generate_map_dict, path_find_mobs
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, ai_settings, screen, x, y, maps, mobs):
+    def __init__(self, ai_settings, screen, x, y, maps, mobs, player, arrows):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.mobs = mobs
+        self.arrows = arrows
         self.ai_settings = ai_settings
+        self.maps = maps
+        self.player = player
+        self.path = []
         self.level = maps.levels[self.ai_settings.current_lvl]
         self.block_size = ai_settings.block_size
         self.sheet = pygame.image.load('assets/ghost.png').convert()
@@ -31,16 +37,66 @@ class Enemy(pygame.sprite.Sprite):
         self.side = 2  # 1 - r, 2 - l, 3 -b, 4 -t
         self.hp = 10
         self.atk = 200
-        self.speed = 1
+        self.speed = 2
         self.cost = 10
 
     def update(self):
+        if self.ai_settings.maps_dict is None:
+            generate_map_dict(self.maps, self.ai_settings)
+        # graph = path_find_mobs(
+        #    copy.deepcopy(self.ai_settings.maps_dict), self.mobs, self)
+        graph = self.ai_settings.maps_dict
         posy = int(self.rect.centery/self.block_size)
         posx = int(self.rect.centerx/self.block_size)
+        playerx = int(self.player.rect.centerx/self.block_size)
+        playery = int(self.player.rect.centery/self.block_size)
+        for i in self.arrows:
+            arrows_path = bfs(graph,
+                              (posy, posx), (int(i.rect.centery/40), int(i.rect.centerx/40)))
+            graph = copy.deepcopy(self.ai_settings.maps_dict)
+            self.evade_arrow(graph, int(
+                i.rect.centery/40), int(i.rect.centerx/40))
+            if i.side == 'right':
+                self.evade_arrow(graph, int(
+                    i.rect.centery/40), int(i.rect.centerx/40)-1)
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40), int(i.rect.centerx/40)+j)
+            elif i.side == 'left':
+                self.evade_arrow(graph, int(
+                    i.rect.centery/40), int(i.rect.centerx/40)+1)
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40), int(i.rect.centerx/40)-j)
+            elif i.side == 'up':
+                self.evade_arrow(graph, int(
+                    i.rect.centery/40)+1, int(i.rect.centerx/40))
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40)-j, int(i.rect.centerx/40))
+            elif i.side == 'down':
+                self.evade_arrow(graph, int(
+                    i.rect.centery/40)-1, int(i.rect.centerx/40))
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40)+j, int(i.rect.centerx/40))
+        self.path = a_star_search(
+            graph, (posy, posx), (playery, playerx))
         mobs_l = []
         mobs_r = []
         mobs_t = []
         mobs_b = []
+
+        if len(self.path) > 1 and abs(self.rect.x - self.path[1][1]*40) < 2:
+            if int(self.rect.y/40) - self.path[1][0] == 1:
+                self.side = 4
+            if int(self.rect.centery/40) - self.path[1][0] == -1:
+                self.side = 3
+        elif len(self.path) > 1 and abs(self.rect.y - self.path[1][0]*40) < 2:
+            if int(self.rect.centerx/40) - self.path[1][1] == 1:
+                self.side = 2
+            if int(self.rect.centerx/40) - self.path[1][1] == -1:
+                self.side = 1
         for i in self.mobs:
             if i == self:
                 continue
@@ -110,6 +166,26 @@ class Enemy(pygame.sprite.Sprite):
                 self.side = random.choice([2, 3, 1])
         self.rect.centerx = self.x
         self.rect.centery = self.y
+
+    def evade_arrow(self, graph, y, x):
+        graph.pop((y, x), None)
+        if (y, x+1) in graph:
+            if (y, x) in graph[(y, x+1)]:
+                graph[(y, x+1)
+                      ].remove((y, x))
+
+        if (y, x-1) in graph:
+            if (y, x) in graph[(y, x-1)]:
+                graph[(y, x-1)
+                      ].remove((y, x))
+        if (y-1, x) in graph:
+            if (y, x) in graph[(y-1, x)]:
+                graph[(y-1, x)
+                      ].remove((y, x))
+        if (y+1, x) in graph:
+            if (y, x) in graph[(y+1, x)]:
+                graph[(y+1, x)
+                      ].remove((y, x))
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)

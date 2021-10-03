@@ -33,7 +33,7 @@ class Hero(pygame.sprite.Sprite):
         self.hp = 1000
         self.score = 0
         self.keys = 0
-        self.mobs_limit = 5
+        self.mobs_limit = 3
 
     def update(self):
         if self.moving_right and self.rect.right < self.screen_rect.right:

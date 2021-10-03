@@ -19,7 +19,7 @@ class EnemySpawn(pygame.sprite.Sprite):
         self.x = float(self.rect.centerx)
         self.y = float(self.rect.centery)
         self.hp = 40
-        self.timer = 1000
+        self.timer = 500
         self.cost = 100
 
     def update(self):
