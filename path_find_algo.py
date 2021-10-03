@@ -2,7 +2,7 @@ import copy
 from queue import PriorityQueue
 
 
-def path_find(maps, mobs):
+def path_find(maps, mobs=False):
     full_map = copy.deepcopy(maps.tilemap1)
     """
     mobs_center_coord = []
@@ -17,8 +17,8 @@ def path_find(maps, mobs):
     """
     graph_to_key = {}
     graph_to_exit = {}
-    forb_to_key = [1, 3, 7, 9]
-    forb_to_exit = [1, 3]
+    forb_to_key = [1, 7, 9]
+    forb_to_exit = [1]
     for i in range(len(full_map)):
         for j in range(len(full_map[i])):
             if full_map[i][j] not in forb_to_key:
@@ -91,8 +91,8 @@ def generate_map_dict(maps, ai_settings):
     full_map = copy.deepcopy(maps.tilemap1)
     graph = {}
 
-    for i in range(len(full_map)):
-        for j in range(len(full_map[i])):
+    for i in range(len(full_map)-1):
+        for j in range(len(full_map[i])-1):
             if full_map[i][j] == 0:
                 if full_map[i+1][j] == 0 and graph.get((i, j)) is None:
                     graph[(i, j)] = [(i+1, j)]
@@ -185,7 +185,7 @@ def reconstruct_path(came_from, start, goal):
 
 def heuristic(node, n):
     if node and n:
-        return abs(node[0] - n[0]) + abs(node[1] - n[1])
+        return 0  # ((node[0] - n[0])**2 + (node[1] - n[1])**2)**(1/2)/2
     else:
         return 0
 

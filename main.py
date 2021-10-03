@@ -84,6 +84,7 @@ class GauntletGame:
                 else:
                     self.first_draw = 1
                     self.lvl += 1
+                    pygame.event.clear()
                     if self.lvl == 7:
                         self.settings.game_status = 3
                         self.settings.current_lvl = 1

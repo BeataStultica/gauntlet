@@ -332,23 +332,23 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         if i.rect.top <= player.rect.bottom and player.rect.centery < i.rect.centery:
             b_coin += 1
             player.speed_factor_collise[3] = 0
-            player.y -= 1
-            player.rect.centery -= 1
+            player.y -= 2
+            player.rect.centery -= 2
         elif i.rect.bottom >= player.rect.top and player.rect.centery > i.rect.centery:
             t_coin += 1
             player.speed_factor_collise[2] = 0
-            player.y += 1
-            player.rect.centery += 1
+            player.y += 2
+            player.rect.centery += 2
         if i.rect.left <= player.rect.right and player.rect.centerx < i.rect.centerx:
             r_coin += 1
             player.speed_factor_collise[1] = 0
-            player.x -= 1
-            player.rect.centerx -= 1
+            player.x -= 2
+            player.rect.centerx -= 2
         elif i.rect.right >= player.rect.left and player.rect.centerx > i.rect.centerx:
             l_coin += 1
             player.speed_factor_collise[0] = 0
-            player.x += 1
-            player.rect.centerx += 1
+            player.x += 2
+            player.rect.centerx += 2
     if l_coin == 0:
         player.speed_factor_collise[0] = 1
     if r_coin == 0:
@@ -399,6 +399,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         paths = bfs(graph_to_key, (int(player.rect.centery/40),
                                    int(player.rect.centerx/40)), key_coor)
     auto_moving_player(player, paths)
+    auto_fire(player, mobs_spawn, mobs, maps)
     for i in paths:
         screen.blit(s, (i[1]*40, i[0]*40))
     for j in mobs:
@@ -422,6 +423,58 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     draw_text(screen, 'Algorithm: '+"bfs",
               18, ai_settings.screen_width*0.90, 170)
     pygame.display.flip()
+
+
+def auto_fire(player, spawn, mobs, maps):
+    for i in mobs:
+        check_unfire(player, i, maps)
+    for i in spawn:
+        check_unfire(player, i, maps)
+
+
+def check_unfire(player, i, maps):
+    if int(i.rect.centerx/40) == int(player.rect.centerx/40):
+        if player.side == 'up':
+
+            if i.rect.centery < player.rect.centery and check_arrow_path(maps, int(i.rect.centerx/40), int(i.rect.centery/40), x1=False, y1=int(player.rect.centery/40)):
+                fire_event = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_z)
+                pygame.event.post(fire_event)
+        if player.side == 'down':
+
+            if i.rect.centery > player.rect.centery and check_arrow_path(maps, int(i.rect.centerx/40), int(i.rect.centery/40), y1=int(player.rect.centery/40)):
+                fire_event = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_z)
+                pygame.event.post(fire_event)
+    elif int(i.rect.centery/40) == int(player.rect.centery/40):
+        if player.side == 'right':
+            if i.rect.centerx > player.rect.centerx and check_arrow_path(maps, int(i.rect.centerx/40), int(i.rect.centery/40), x1=int(player.rect.centerx/40)):
+                fire_event = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_z)
+                pygame.event.post(fire_event)
+        if player.side == 'left':
+            if i.rect.centerx < player.rect.centerx and check_arrow_path(maps, int(i.rect.centerx/40), int(i.rect.centery/40), x1=int(player.rect.centerx/40)):
+                fire_event = pygame.event.Event(
+                    pygame.KEYDOWN, key=pygame.K_z)
+                pygame.event.post(fire_event)
+
+
+def check_arrow_path(maps, x, y, x1=False, y1=False):
+    if x1:
+        if x1 > x:
+            return maps.tilemap1[y][x:x1].count(0) == len(maps.tilemap1[y][x:x1])
+        else:
+            return maps.tilemap1[y][x1:x].count(0) == len(maps.tilemap1[y][x1:x])
+    else:
+        if y1 > y:
+            for i in maps.tilemap1[y:y1]:
+                if i[x] != 0:
+                    return False
+        else:
+            for i in maps.tilemap1[y1:y]:
+                if i[x] != 0:
+                    return False
+        return True
 
 
 def auto_moving_player(player, path):

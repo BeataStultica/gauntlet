@@ -49,8 +49,8 @@ class Enemy(pygame.sprite.Sprite):
         posx = int(self.rect.centerx/self.block_size)
         playerx = int(self.player.rect.centerx/self.block_size)
         playery = int(self.player.rect.centery/self.block_size)
-        self.path = bfs(
-            copy.deepcopy(self.ai_settings.maps_dict), (posy, posx), (playery, playerx))
+        self.path = a_star_search(
+            self.ai_settings.maps_dict, (posy, posx), (playery, playerx))
         # print(self.path)
         mobs_l = []
         mobs_r = []

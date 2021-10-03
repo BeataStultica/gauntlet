@@ -1,4 +1,4 @@
-from key_actions import spawn_mob
+from path_find_algo import bfs, path_find
 import pygame
 import random
 
@@ -27,7 +27,7 @@ class Map:
         self.key_amount = 1
         treas_amount = random.randint(2, 6)
         food_amount = random.randint(2, 6)
-        spawn_mob = random.randint(1, 3)
+        spawn_mob = random.randint(1, 2)
         exit_x = 0
         exit_y = 0
         key_x = 0
@@ -89,14 +89,16 @@ class Map:
             while True:
                 x = random.randint(1, 21)
                 y = random.randint(1, 13)
-                if self.tilemap1[y][x] == 0:
+                distan = ((self.x-x)**2+(self.y-y)**2)**(1/2)
+                if self.tilemap1[y][x] == 0 and distan > 2:
                     self.tilemap1[y][x] == 8
                     break
         if exit_x == 0:
             while True:
                 x = random.randint(1, 21)
                 y = random.randint(1, 13)
-                if self.tilemap1[y][x] == 0:
+                distan = ((self.x-x)**2+(self.y-y)**2)**(1/2)
+                if self.tilemap1[y][x] == 0 and distan > 2:
                     self.tilemap1[y][x] == 9
                     break
         near_exit = [[exit_y-1, exit_x], [exit_y, exit_x-1], [exit_y+1, exit_x], [exit_y, exit_x+1],
@@ -119,6 +121,19 @@ class Map:
         while spawn_mob:
             x = random.randint(1, 21)
             y = random.randint(1, 13)
-            if self.tilemap1[y][x] == 0 and self.tilemap1[y][x-1] == 0:
+            if self.tilemap1[y][x] == 0 and self.tilemap1[y][x-1] == 0 and (x, y) != (self.x, self.y):
                 self.tilemap1[y][x] = 3
                 spawn_mob -= 1
+        if self.y-1 != 0:
+            self.tilemap1[self.y-1][self.x] = 0
+        if self.y+1 != 14:
+            self.tilemap1[self.y+1][self.x] = 0
+        if self.x-1 != 0:
+            self.tilemap1[self.y][self.x-1] = 0
+        if self.x+1 != 22:
+            self.tilemap1[self.y][self.x+1] = 0
+        (graph_to_key, graph_to_exit, key_coor, exit_coor) = path_find(
+            self)
+
+        if len(bfs(graph_to_key, (self.y, self.x), key_coor)) == 0:
+            self.lvl_generate(self)
