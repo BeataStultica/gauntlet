@@ -136,4 +136,4 @@ class Map:
             self)
 
         if len(bfs(graph_to_key, (self.y, self.x), key_coor)) == 0:
-            self.lvl_generate(self)
+            self.lvl_generate()

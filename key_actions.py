@@ -175,7 +175,7 @@ def fire_arrow(ai_settings, arrows, screen, player):
         arrows.add(new_arrow)
 
 
-def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn):
+def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows):
     for i in mobs_spawn:
         i.timer -= 10
         flag = True
@@ -186,7 +186,7 @@ def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn):
         if i.timer <= 0 and player.mobs_limit > 0 and flag:
             i.timer = 1000
             new_mob = Enemy(ai_settings, screen, i.x -
-                            30, i.y, maps, mobs, player)
+                            30, i.y, maps, mobs, player, arrows)
             mobs.add(new_mob)
             player.mobs_limit -= 1
 
@@ -380,7 +380,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     foods.update()
     foods.draw(screen)
     player.hp -= 0.02
-    spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn)
+    spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
     s = pygame.Surface((40, 40))
@@ -400,11 +400,13 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
                                    int(player.rect.centerx/40)), key_coor)
     auto_moving_player(player, paths)
     auto_fire(player, mobs_spawn, mobs, maps)
+    '''
     for i in paths:
         screen.blit(s, (i[1]*40, i[0]*40))
     for j in mobs:
         for k in j.path:
             screen.blit(s2, (k[1]*40, k[0]*40))
+    '''
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)

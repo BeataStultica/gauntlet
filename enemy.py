@@ -5,10 +5,11 @@ from path_find_algo import path_find, a_star_search, bfs, generate_map_dict, pat
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, ai_settings, screen, x, y, maps, mobs, player):
+    def __init__(self, ai_settings, screen, x, y, maps, mobs, player, arrows):
         pygame.sprite.Sprite.__init__(self)
         self.screen = screen
         self.mobs = mobs
+        self.arrows = arrows
         self.ai_settings = ai_settings
         self.maps = maps
         self.player = player
@@ -41,17 +42,36 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         if self.ai_settings.maps_dict is None:
-            print('++')
             generate_map_dict(self.maps, self.ai_settings)
         # graph = path_find_mobs(
         #    copy.deepcopy(self.ai_settings.maps_dict), self.mobs, self)
+        graph = self.ai_settings.maps_dict
         posy = int(self.rect.centery/self.block_size)
         posx = int(self.rect.centerx/self.block_size)
         playerx = int(self.player.rect.centerx/self.block_size)
         playery = int(self.player.rect.centery/self.block_size)
+        for i in self.arrows:
+            arrows_path = bfs(graph,
+                              (posy, posx), (int(i.rect.centery/40), int(i.rect.centerx/40)))
+            graph = copy.deepcopy(self.ai_settings.maps_dict)
+            if i.side == 'right':
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40), int(i.rect.centerx/40)+j)
+            elif i.side == 'left':
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40), int(i.rect.centerx/40)-j)
+            elif i.side == 'up':
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40)-j, int(i.rect.centerx/40))
+            elif i.side == 'down':
+                for j in range(1, int(len(arrows_path)*0.6)+1):
+                    self.evade_arrow(graph, int(
+                        i.rect.centery/40)+j, int(i.rect.centerx/40))
         self.path = a_star_search(
-            self.ai_settings.maps_dict, (posy, posx), (playery, playerx))
-        # print(self.path)
+            graph, (posy, posx), (playery, playerx))
         mobs_l = []
         mobs_r = []
         mobs_t = []
@@ -136,6 +156,26 @@ class Enemy(pygame.sprite.Sprite):
                 self.side = random.choice([2, 3, 1])
         self.rect.centerx = self.x
         self.rect.centery = self.y
+
+    def evade_arrow(self, graph, y, x):
+        graph.pop((y, x), None)
+        if (y, x+1) in graph:
+            if (y, x) in graph[(y, x+1)]:
+                graph[(y, x+1)
+                      ].remove((y, x))
+
+        if (y, x-1) in graph:
+            if (y, x) in graph[(y, x-1)]:
+                graph[(y, x-1)
+                      ].remove((y, x))
+        if (y-1, x) in graph:
+            if (y, x) in graph[(y-1, x)]:
+                graph[(y-1, x)
+                      ].remove((y, x))
+        if (y+1, x) in graph:
+            if (y, x) in graph[(y+1, x)]:
+                graph[(y+1, x)
+                      ].remove((y, x))
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)

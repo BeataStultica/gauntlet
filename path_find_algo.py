@@ -87,8 +87,11 @@ def path_find_mobs(curr_graph, mobs, mob=None):
     return curr_graph
 
 
-def generate_map_dict(maps, ai_settings):
-    full_map = copy.deepcopy(maps.tilemap1)
+def generate_map_dict(maps, ai_settings, tilemap=False):
+    if tilemap:
+        full_map = tilemap
+    else:
+        full_map = copy.deepcopy(maps.tilemap1)
     graph = {}
 
     for i in range(len(full_map)-1):
@@ -110,7 +113,10 @@ def generate_map_dict(maps, ai_settings):
                     graph[(i, j)] = [(i, j+1)]
                 elif full_map[i][j+1] == 0:
                     graph[(i, j)].append((i, j+1))
-    ai_settings.maps_dict = graph
+    if tilemap:
+        return graph
+    else:
+        ai_settings.maps_dict = graph
 
 
 def dfs(graph_adj, start, end):
