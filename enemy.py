@@ -54,33 +54,38 @@ class Enemy(pygame.sprite.Sprite):
             arrows_path = bfs(graph,
                               (posy, posx), (int(i.rect.centery/40), int(i.rect.centerx/40)))
             graph = copy.deepcopy(self.ai_settings.maps_dict)
-            self.evade_arrow(graph, int(
-                i.rect.centery/40), int(i.rect.centerx/40))
-            if i.side == 'right':
+            if (int(i.rect.centery/40), int(i.rect.centerx/40)) != (playery, playerx):
                 self.evade_arrow(graph, int(
-                    i.rect.centery/40), int(i.rect.centerx/40)-1)
+                    i.rect.centery/40), int(i.rect.centerx/40))
+            if i.side == 'right':
+                # if (int(i.rect.centery/40), int(i.rect.centerx/40)-1) != (playery, playerx) and (int(i.rect.centery/40), int(i.rect.centerx/40)-1) != (playery, playerx+1):
+                #    self.evade_arrow(graph, int(
+                #        i.rect.centery/40), int(i.rect.centerx/40)-1)
                 for j in range(1, int(len(arrows_path)*0.6)+1):
                     self.evade_arrow(graph, int(
                         i.rect.centery/40), int(i.rect.centerx/40)+j)
             elif i.side == 'left':
-                self.evade_arrow(graph, int(
-                    i.rect.centery/40), int(i.rect.centerx/40)+1)
+                # if (int(i.rect.centery/40), int(i.rect.centerx/40)+1) != (playery, playerx) and (int(i.rect.centery/40), int(i.rect.centerx/40)+1) != (playery, playerx-1):
+                #    self.evade_arrow(graph, int(
+                #        i.rect.centery/40), int(i.rect.centerx/40)+1)
                 for j in range(1, int(len(arrows_path)*0.6)+1):
                     self.evade_arrow(graph, int(
                         i.rect.centery/40), int(i.rect.centerx/40)-j)
             elif i.side == 'up':
-                self.evade_arrow(graph, int(
-                    i.rect.centery/40)+1, int(i.rect.centerx/40))
+                # if (int(i.rect.centery/40)+1, int(i.rect.centerx/40)) != (playery, playerx) and (int(i.rect.centery/40)+1, int(i.rect.centerx/40)) != (playery-1, playerx):
+                #    self.evade_arrow(graph, int(
+                #        i.rect.centery/40)+1, int(i.rect.centerx/40))
                 for j in range(1, int(len(arrows_path)*0.6)+1):
                     self.evade_arrow(graph, int(
                         i.rect.centery/40)-j, int(i.rect.centerx/40))
             elif i.side == 'down':
-                self.evade_arrow(graph, int(
-                    i.rect.centery/40)-1, int(i.rect.centerx/40))
+                # if (int(i.rect.centery/40)-1, int(i.rect.centerx/40)) != (playery, playerx) and (int(i.rect.centery/40)-1, int(i.rect.centerx/40))!= (playery+1, playerx):
+                #    self.evade_arrow(graph, int(
+                #        i.rect.centery/40)-1, int(i.rect.centerx/40))
                 for j in range(1, int(len(arrows_path)*0.6)+1):
                     self.evade_arrow(graph, int(
                         i.rect.centery/40)+j, int(i.rect.centerx/40))
-        self.path = a_star_search(
+        self.path = bfs(
             graph, (posy, posx), (playery, playerx))
         mobs_l = []
         mobs_r = []
