@@ -5,7 +5,7 @@ __pycache__/
 .metals/
 # C extensions
 *.so
-*.db
+*.h2.db
 # Distribution / packaging
 .Python
 build/
