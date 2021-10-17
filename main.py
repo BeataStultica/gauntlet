@@ -55,6 +55,7 @@ class GauntletGame:
         self.player.x = self.maps.x*40 + 20
         self.player.y = self.maps.y*40 + 20
         self.player.mobs_limit = 3
+        self.player.mobs_random_limit = 1
 
     def new_game(self):
         self.lvl = 1
@@ -68,7 +69,7 @@ class GauntletGame:
     def run_game(self):
         self.first_draw = 1
         while True:
-            self.clock.tick(30)
+            self.clock.tick(15)
             k_a.check_game_event(self.settings, self.screen,
                                  self.player, self.arrows, self.maps, self.mobs)
             if self.settings.game_status == 0:

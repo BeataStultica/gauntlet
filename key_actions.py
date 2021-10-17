@@ -184,9 +184,12 @@ def spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows):
                 flag = False
                 break
         if i.timer <= 0 and player.mobs_limit > 0 and flag:
-            i.timer = 2000
+            i.timer = 1000
             new_mob = Enemy(ai_settings, screen, i.x -
                             30, i.y, maps, mobs, player, arrows)
+            if player.mobs_random_limit > 0:
+                new_mob.israndom = True
+                player.mobs_random_limit -= 1
             mobs.add(new_mob)
             player.mobs_limit -= 1
 
@@ -268,6 +271,8 @@ def arrow_damage(mobs, arrows, mobs_spawn, player, ai_settings, walls, treasure,
     for i in damaged_mobs:
         i.hp -= player.atk
         if i.hp <= 0:
+            if i.israndom == True:
+                player.mobs_random_limit += 1
             i.kill()
             ai_settings.score += i.cost
             player.mobs_limit += 1
@@ -318,6 +323,8 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         generate_map_dict(maps, ai_settings)
     mobs_hit = pygame.sprite.spritecollide(player, mobs, False)
     for i in mobs_hit:
+        if i.israndom == True:
+            player.mobs_random_limit += 1
         i.kill()
         player.mobs_limit += 1
         player.hp -= i.atk

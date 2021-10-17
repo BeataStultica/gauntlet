@@ -39,6 +39,7 @@ class Enemy(pygame.sprite.Sprite):
         self.atk = 200
         self.speed = 2
         self.cost = 10
+        self.israndom = False
 
     def update(self):
         if self.ai_settings.maps_dict is None:
@@ -85,13 +86,14 @@ class Enemy(pygame.sprite.Sprite):
                 for j in range(1, int(len(arrows_path)*0.6)+1):
                     self.evade_arrow(graph, int(
                         i.rect.centery/40)+j, int(i.rect.centerx/40))
-        self.path = bfs(
-            graph, (posy, posx), (playery, playerx))
+
         mobs_l = []
         mobs_r = []
         mobs_t = []
         mobs_b = []
-
+        if self.israndom == False:
+            self.path = bfs(
+                graph, (posy, posx), (playery, playerx))
         if len(self.path) > 1 and abs(self.rect.x - self.path[1][1]*40) < 2:
             if int(self.rect.y/40) - self.path[1][0] == 1:
                 self.side = 4
