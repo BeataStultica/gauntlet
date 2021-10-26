@@ -5,6 +5,8 @@ from player import Hero
 from settings import Settings
 import key_actions as k_a
 from map import Map
+from minimax import Minimax
+from util_function import evaluation_function, result_function
 
 
 class GauntletGame:
@@ -28,6 +30,8 @@ class GauntletGame:
         self.keys = pygame.sprite.Group()
         self.doors = pygame.sprite.Group()
         self.lvl = 1
+        self.minimax = Minimax(evaluation_function,
+                               result_function, max_depth=4)
         pygame.display.set_caption("Gauntlet")
 
     def clean_after_dead(self):

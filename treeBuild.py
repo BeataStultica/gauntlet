@@ -19,7 +19,7 @@ class TreeBuilder:
         enemies_coords = get_enemies_positions(node.get_data().state)
         if rec_depth % 2 == 1:
             for i in range(1, 5):  # left right, top, bottom
-                game = copy.deepcopy(node.get_data())
+                game = copy.deepcopy(node.get_data()).player_turn = 1
                 if game.move(i):
                     if game.is_terminal_state():
                         game.end_game()
@@ -31,15 +31,18 @@ class TreeBuilder:
             neighboring_nodes = [get_neighbors(
                 game.state, coord) for coord in enemies_coords]
             variations = get_variations(neighboring_nodes)
+            move_num = 1
             for i in variations:
-                game = copy.deepcopy(node.get_data())
+                game = copy.deepcopy(node.get_data()).player_turn = 0
+                game.mobs_coord = i
                 for k in range(len(game.state)):
                     for n in range(len(game.state[0])):
                         if game.state[k][n] == 13:
                             game.state[k][n] = 0
                 for j in i:
                     game.state[j[0]][j[1]] = 13
-                node.add_child(move=-3, child=Node(game))
+                node.add_child(move=move_num, child=Node(game))
+                move_num+=1
         for child in node.get_children().values():
             if isinstance(child, Node):
                 self.build_from(child, rec_depth + 1)
