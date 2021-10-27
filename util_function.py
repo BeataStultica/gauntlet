@@ -31,41 +31,32 @@ def check_player_utility(game, settings):
             if game.state[k][n] == 14:
                 player_coord = (k, n)
     # if player_turn == 0:
-    # for i in mobs_coord:
-    #    utility -= 4*1/(((player_coord[1] - i[1]) **
-    #                     2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
+    for i in mobs_coord:
+        utility -= 0.3*((player_coord[1] - i[1]) **
+                        2 + (player_coord[0] - i[0])**2)**(1/2)
     # if player_turn == 1:
     if key_coord:
         a = bfs(settings.key_dict,
                 player_coord, settings.key_coord)
-        # for i in game.state:
-        #    print(i)
-        # print(settings.maps_dict)
-        # print(player_coord)
-        # print(settings.key_coord)
-        # print(a)
-        # if len(a) + settings.last_v == 1:
         utility += -(len(a))
-        # else:
-        #    utility += 99
     else:
         utility += -(len(bfs(settings.exit_dict,
-                             (game.player_y, game.player_x), tuple(settings.exit_coord))))
-    # for i in treas_coord:
-    #    value = 1/(((player_coord[1] - i[1]) **
-    #                2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
-    #    if value >= 1/2:
-    #        utility += 2*value
+                             player_coord, tuple(settings.exit_coord))))
+    for i in treas_coord:
+        value = ((player_coord[1] - i[1]) **
+                 2 + (player_coord[0] - i[0])**2)**(1/2)
+        if value <= 2:
+            utility += value
         # else:
-        #    utility += 0.5*value
+        #    utility += -0.1*value
     if game.player.hp < 500:
         for i in food_coord:
-            value = 1/(((player_coord[1] - i[1]) **
-                        2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
-            if value >= 1/2:
-                utility += 2*value
+            value = (((player_coord[1] - i[1]) **
+                      2 + (player_coord[0] - i[0])**2)**(1/2))
+            if value <= 2:
+                utility += value
             # else:
-            #    utility += value
+            #    utility += -0.1*value
     return utility
 
 

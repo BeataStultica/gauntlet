@@ -388,7 +388,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     treasure.draw(screen)
     foods.update()
     foods.draw(screen)
-    player.hp -= 0.02
+    player.hp -= 1
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
@@ -543,16 +543,24 @@ def auto_moving(deep, side, ai_settings, v, player, maps):
     graph_to_exit = ai_settings.exit_dict
     e_c = ai_settings.exit_coord
     k_c = ai_settings.key_coord
-    if v >= -deep:
-        if maps.key_amount == 0:
-            paths = bfs(graph_to_exit, (int(player.rect.centery/40),
-                                        int(player.rect.centerx/40)), e_c)
-        else:
-            paths = bfs(graph_to_key, (int(player.rect.centery/40),
-                                       int(player.rect.centerx/40)), k_c)
+    if maps.key_amount == 0:
+        paths = bfs(graph_to_exit, (int(player.rect.centery/40),
+                                    int(player.rect.centerx/40)), e_c)
+    else:
+        paths = bfs(graph_to_key, (int(player.rect.centery/40),
+                                   int(player.rect.centerx/40)), k_c)
+
+    ai_settings.last_v.append(len(paths))
+    if len(ai_settings.last_v) > 10:
+        ai_settings.last_v = ai_settings.last_v[-10:]
+    if ai_settings.last_v[0] == ai_settings.last_v[-1]:
+        ai_settings.timer = 30
+    if len(paths) <= deep or ai_settings.timer > 0:
+        ai_settings.timer -= 1
+        # print("bfs")
         auto_moving_player(player, paths)
     else:
-        ai_settings.last_v = v
+        # print("min")
         auto_moving_to(player, side)
 
 
