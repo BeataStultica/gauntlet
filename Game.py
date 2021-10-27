@@ -31,13 +31,18 @@ class Game:
         self.state[y][x] = 14
 
     def move(self, side):
-        self.state = copy.deepcopy(self.map.tilemap1)
-        for i in self.mobs:
-            x = int(i.rect.centerx/40)
-            y = int(i.rect.centery/40)
-            self.state[y][x] = 13
-        x = int(self.player.rect.centerx/40)
-        y = int(self.player.rect.centery/40)
+        # for i in self.mobs:
+        #    x = int(i.rect.centerx/40)
+        #   y = int(i.rect.centery/40)
+        #    self.state[y][x] = 13
+        #x = int(self.player.rect.centerx/40)
+        #y = int(self.player.rect.centery/40)
+        for i in range(len(self.state)):
+            for j in range(len(self.state[0])):
+                if self.state[i][j] == 14:
+                    self.state[i][j] = 0
+                    x = j
+                    y = i
         if side == 1 and self.state[y][x-1] != 1:
             x -= 1
         elif side == 2 and self.state[y][x+1] != 1:

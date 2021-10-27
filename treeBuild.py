@@ -22,7 +22,6 @@ class TreeBuilder:
             return
         maps1 = game_copy(node.get_data())
         # print(maps1.mobs)
-        maps1.update_map()
         # print(maps1.state)
         enemies_coords = get_enemies_positions(maps1.state)
 
@@ -30,7 +29,6 @@ class TreeBuilder:
         if rec_depth % 2 == 0:
             for i in range(1, 5):  # left right, top, bottom
                 game = game_copy(node.get_data())
-                game.update_map()
                 game.player_turn = 0
                 if game.move(i):
                     if game.is_terminal_state():
@@ -48,7 +46,7 @@ class TreeBuilder:
                 if len(i) == 0:
                     for i in range(1, 5):  # left right, top, bottom
                         game = game_copy(node.get_data())
-                        game.update_map()
+
                         game.player_turn = 0
                         if game.move(i):
                             if game.is_terminal_state():
@@ -58,7 +56,6 @@ class TreeBuilder:
                                 node.add_child(move=i, child=Node(game))
                 else:
                     game = game_copy(node.get_data())
-                    game.update_map()
                     game.player_turn = 1
                     game.mobs_coord = i
                     for k in range(len(game.state)):
@@ -147,7 +144,7 @@ def game_copy(game):
     new_game.player_y = game.player_y
     new_game.terminal = game.terminal
     new_game.mobs_coord = copy.deepcopy(game.mobs_coord)
-    new_game.update_map()
+    # new_game.update_map()
     return new_game
 
 

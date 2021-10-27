@@ -398,7 +398,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     tree = TreeBuilder(maps, 3)
     tree.set_root(Node(game))
     tree.build()
-
+    '''
     print("-----root")
     for i in tree.root.get_data().state:
         print(i)
@@ -438,7 +438,7 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
         for j in n:
             print(j)
     print('===-==-==-=-=-=99999')
-
+    '''
     v, side = minimax.alpha_beta_search(tree)
     # print(side)
     # print(v)
