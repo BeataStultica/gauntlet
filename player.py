@@ -33,7 +33,7 @@ class Hero(pygame.sprite.Sprite):
         self.hp = 1000
         self.score = 0
         self.keys = 0
-        self.mobs_limit = 3
+        self.mobs_limit = 2
         self.mobs_random_limit = 1
 
     def update(self):

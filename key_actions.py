@@ -2,7 +2,7 @@ import sys
 
 import pygame
 from arrow import Arrow
-from path_find_algo import generate_map_dict, path_find, a_star_search, bfs
+from path_find_algo import generate_map_dict, path_find, a_star_search, bfs, path_find_mobs
 from wall import Wall
 from enemy_spawn import EnemySpawn
 from enemy import Enemy
@@ -368,7 +368,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1, minimax=False):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1, minimax=False, deep=3):
     screen.fill([255, 0, 0])
     draw_lvl(walls, ai_settings, screen, maps,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
@@ -392,57 +392,21 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
+    (graph_to_key, graph_to_exit, k_c, e_c) = path_find(maps)
+    ai_settings.key_dict = graph_to_key
+    ai_settings.exit_dict = graph_to_exit
+    ai_settings.exit_coord = e_c
+    ai_settings.key_coord = k_c
     game = Game(maps, mobs, player)
     game.update_map()
     game.player_turn = 1
-    tree = TreeBuilder(maps, 3)
+    tree = TreeBuilder(maps, deep)
     tree.set_root(Node(game))
     tree.build()
-    '''
-    print("-----root")
-    for i in tree.root.get_data().state:
-        print(i)
-    a = tree.root.get_children().values()
-    print('++++++first')
-    for i in a:
-        print('---f')
-        n = i.get_data().state
-        for j in n:
-            print(j)
 
-    b = list(a)[0].get_children().values()
-    c = list(a)[1].get_children().values()
-    print('++++++second')
-    for i in b:
-        print('---s')
-        n = i.get_data().state
-        for j in n:
-            print(j)
-    for i in c:
-        print('---s2')
-        n = i.get_data().state
-        for j in n:
-            print(j)
-    print('===-==-==-=-=-=')
-    d = list(b)[0].get_children().values()
-    e = list(c)[0].get_children().values()
-    print('++++++third')
-    for i in e:
-        print('---t0')
-        n = i.get_data().state
-        for j in n:
-            print(j)
-    for i in d:
-        print('---t1')
-        n = i.get_data().state
-        for j in n:
-            print(j)
-    print('===-==-==-=-=-=99999')
-    '''
     v, side = minimax.alpha_beta_search(tree)
-    # print(side)
-    # print(v)
-    auto_moving_to(player, side)
+
+    auto_moving(deep, side, ai_settings, v, player, maps)
     auto_fire(player, mobs_spawn, mobs, maps)
 
     # for i in paths:
@@ -572,6 +536,24 @@ def auto_moving_to(player, side):
         if player.moving_down:
             pygame.event.post(newevent_down)
         pygame.event.post(newevent)
+
+
+def auto_moving(deep, side, ai_settings, v, player, maps):
+    graph_to_key = ai_settings.key_dict
+    graph_to_exit = ai_settings.exit_dict
+    e_c = ai_settings.exit_coord
+    k_c = ai_settings.key_coord
+    if v >= -deep:
+        if maps.key_amount == 0:
+            paths = bfs(graph_to_exit, (int(player.rect.centery/40),
+                                        int(player.rect.centerx/40)), e_c)
+        else:
+            paths = bfs(graph_to_key, (int(player.rect.centery/40),
+                                       int(player.rect.centerx/40)), k_c)
+        auto_moving_player(player, paths)
+    else:
+        ai_settings.last_v = v
+        auto_moving_to(player, side)
 
 
 def auto_moving_player(player, path):

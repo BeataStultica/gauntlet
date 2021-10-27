@@ -37,7 +37,7 @@ class Enemy(pygame.sprite.Sprite):
         self.side = 2  # 1 - r, 2 - l, 3 -b, 4 -t
         self.hp = 10
         self.atk = 200
-        self.speed = 6
+        self.speed = 3
         self.cost = 10
         self.israndom = False
 

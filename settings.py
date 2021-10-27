@@ -17,3 +17,8 @@ class Settings:
         self.time_bfs = '-'
         self.time_ucs = '-'
         self.maps_dict = None
+        self.key_dict = None
+        self.exit_dict = None
+        self.exit_coord = None
+        self.key_coord = None
+        self.last_v = 0

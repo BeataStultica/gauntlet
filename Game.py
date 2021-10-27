@@ -55,6 +55,8 @@ class Game:
             return False
         if self.state[y][x] == 9:
             self.terminal = True
+        if self.state[y][x] == 8:
+            self.terminal = True
         self.state[y][x] = 14
         self.player_x = x
         self.player_y = y
@@ -68,6 +70,7 @@ class Game:
             return True
         if self.terminal:
             return True
+        a = None
         return False
 
     def end_game(self):

@@ -64,7 +64,11 @@ class TreeBuilder:
                                 game.state[k][n] = 0
                     for j in i:
                         game.state[j[0]][j[1]] = 13
-                    node.add_child(move=move_num, child=Node(game))
+                    if game.is_terminal_state():
+                        game.end_game()
+                        node.add_child(move=move_num, child=Leaf(game))
+                    else:
+                        node.add_child(move=move_num, child=Node(game))
                 move_num += 1
         for child in node.get_children().values():
             if isinstance(child, Node):
@@ -88,8 +92,8 @@ class Node:
     def set_data(self, data):
         self.data = data
 
-    def calculate_utility(self, fn):
-        return fn(self.data)
+    def calculate_utility(self, fn, settings):
+        return fn(self.data, settings)
 
 
 class Leaf:
@@ -99,8 +103,8 @@ class Leaf:
     def get_data(self):
         return self.data
 
-    def calculate_utility(self, fn):
-        return fn(self.data)
+    def calculate_utility(self, fn, settings):
+        return fn(self.data, settings)
 
 
 def get_variations(arr):

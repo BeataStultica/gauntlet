@@ -1,20 +1,21 @@
-def evaluation_function(game):
-    player_turn = game.get_player_turn()
-    #opposite_player_turn = 1 if player_turn == 0 else 0
-    #utility = 0
-    utility = check_player_utility(player_turn, game)
+from path_find_algo import a_star_search, bfs
 
-    #utility += check_player_utility(opposite_player_turn,  game)
+
+def evaluation_function(game, settings):
+
+    utility = check_player_utility(game, settings)
 
     return utility
 
 
-def check_player_utility(player_turn, game):
+def check_player_utility(game, settings):
     utility = 0
     treas_coord = []
     food_coord = []
     key_coord = False
     exit_coord = False
+    mobs_coord = []
+    player_coord = ()
     for k in range(len(game.state)):
         for n in range(len(game.state[0])):
             if game.state[k][n] == 9:
@@ -25,32 +26,46 @@ def check_player_utility(player_turn, game):
                 treas_coord.append([k, n])
             if game.state[k][n] == 5:
                 food_coord.append([k, n])
+            if game.state[k][n] == 13:
+                mobs_coord.append([k, n])
+            if game.state[k][n] == 14:
+                player_coord = (k, n)
     # if player_turn == 0:
-    for i in game.mobs_coord:
-        utility -= 1/(((game.player_x - i[1]) **
-                       2 + (game.player_y - i[0])**2)**(1/2)+0.0001)
+    # for i in mobs_coord:
+    #    utility -= 4*1/(((player_coord[1] - i[1]) **
+    #                     2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
     # if player_turn == 1:
     if key_coord:
-        utility += 100*1/(((game.player_x - key_coord[1]) **
-                           2 + (game.player_y - key_coord[0])**2)**(1/2)+0.0001)
+        a = bfs(settings.key_dict,
+                player_coord, settings.key_coord)
+        # for i in game.state:
+        #    print(i)
+        # print(settings.maps_dict)
+        # print(player_coord)
+        # print(settings.key_coord)
+        # print(a)
+        # if len(a) + settings.last_v == 1:
+        utility += -(len(a))
+        # else:
+        #    utility += 99
     else:
-        utility += 100*1/(((game.player_x - exit_coord[1]) **
-                           2 + (game.player_y - exit_coord[0])**2)**(1/2)+0.0001)
-    for i in treas_coord:
-        value = 1/(((game.player_x - i[1]) **
-                    2 + (game.player_y - i[0])**2)**(1/2)+0.0001)
-        if value >= 1/2:
-            utility += value
-        else:
-            utility += 0.3*value
+        utility += -(len(bfs(settings.exit_dict,
+                             (game.player_y, game.player_x), tuple(settings.exit_coord))))
+    # for i in treas_coord:
+    #    value = 1/(((player_coord[1] - i[1]) **
+    #                2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
+    #    if value >= 1/2:
+    #        utility += 2*value
+        # else:
+        #    utility += 0.5*value
     if game.player.hp < 500:
         for i in food_coord:
-            value = 1/(((game.player_x - i[1]) **
-                        2 + (game.player_y - i[0])**2)**(1/2)+0.0001)
+            value = 1/(((player_coord[1] - i[1]) **
+                        2 + (player_coord[0] - i[0])**2)**(1/2)+0.0001)
             if value >= 1/2:
-                utility += value
-            else:
-                utility += 0.4*value
+                utility += 2*value
+            # else:
+            #    utility += value
     return utility
 
 
