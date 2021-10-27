@@ -12,6 +12,8 @@ from foods import Food
 from key import Key
 from door import Door
 import time
+from treeBuild import TreeBuilder, Node
+from Game import Game
 
 
 def change_sprite(side):
@@ -366,7 +368,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1, minimax=False):
     screen.fill([255, 0, 0])
     draw_lvl(walls, ai_settings, screen, maps,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
@@ -390,29 +392,64 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
-    s = pygame.Surface((40, 40))
-    s.set_alpha(128)
-    s.fill((160, 0, 120))
-    s2 = pygame.Surface((40, 40))
-    s2.set_alpha(128)
-    s2.fill((0, 160, 120))
-    (graph_to_key, graph_to_exit, key_coor, exit_coor) = path_find(
-        maps, mobs)
+    game = Game(maps, mobs, player)
+    game.update_map()
+    game.player_turn = 1
+    tree = TreeBuilder(maps, 3)
+    tree.set_root(Node(game))
+    tree.build()
 
-    if maps.key_amount == 0:
-        paths = bfs(graph_to_exit, (int(player.rect.centery/40),
-                                    int(player.rect.centerx/40)), exit_coor)
-    else:
-        paths = bfs(graph_to_key, (int(player.rect.centery/40),
-                                   int(player.rect.centerx/40)), key_coor)
-    auto_moving_player(player, paths)
+    print("-----root")
+    for i in tree.root.get_data().state:
+        print(i)
+    a = tree.root.get_children().values()
+    print('++++++first')
+    for i in a:
+        print('---f')
+        n = i.get_data().state
+        for j in n:
+            print(j)
+
+    b = list(a)[0].get_children().values()
+    c = list(a)[1].get_children().values()
+    print('++++++second')
+    for i in b:
+        print('---s')
+        n = i.get_data().state
+        for j in n:
+            print(j)
+    for i in c:
+        print('---s2')
+        n = i.get_data().state
+        for j in n:
+            print(j)
+    print('===-==-==-=-=-=')
+    d = list(b)[0].get_children().values()
+    e = list(c)[0].get_children().values()
+    print('++++++third')
+    for i in e:
+        print('---t0')
+        n = i.get_data().state
+        for j in n:
+            print(j)
+    for i in d:
+        print('---t1')
+        n = i.get_data().state
+        for j in n:
+            print(j)
+    print('===-==-==-=-=-=99999')
+
+    v, side = minimax.alpha_beta_search(tree)
+    # print(side)
+    # print(v)
+    auto_moving_to(player, side)
     auto_fire(player, mobs_spawn, mobs, maps)
 
-    for i in paths:
-        screen.blit(s, (i[1]*40, i[0]*40))
-    for j in mobs:
-        for k in j.path:
-            screen.blit(s2, (k[1]*40, k[0]*40))
+    # for i in paths:
+    #    screen.blit(s, (i[1]*40, i[0]*40))
+    # for j in mobs:
+    #    for k in j.path:
+    #        screen.blit(s2, (k[1]*40, k[0]*40))
 
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
@@ -484,6 +521,57 @@ def check_arrow_path(maps, x, y, x1=False, y1=False):
                 if i[x] not in [0, 3]:
                     return False
         return True
+
+
+def auto_moving_to(player, side):
+    newevent_down = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_DOWN)
+    newevent_left = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_LEFT)
+    newevent_right = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_RIGHT)
+    newevent_up = pygame.event.Event(
+        pygame.KEYUP, key=pygame.K_UP)
+    if side == 3:  # left right, top, bottom
+        newevent = pygame.event.Event(
+            pygame.KEYDOWN, key=pygame.K_UP)
+        if player.moving_right:
+            pygame.event.post(newevent_right)
+        if player.moving_left:
+            pygame.event.post(newevent_left)
+        if player.moving_down:
+            pygame.event.post(newevent_down)
+        pygame.event.post(newevent)
+    if side == 4:
+        newevent = pygame.event.Event(
+            pygame.KEYDOWN, key=pygame.K_DOWN)
+        if player.moving_right:
+            pygame.event.post(newevent_right)
+        if player.moving_left:
+            pygame.event.post(newevent_left)
+        if player.moving_up:
+            pygame.event.post(newevent_up)
+        pygame.event.post(newevent)
+    if side == 1:
+        newevent = pygame.event.Event(
+            pygame.KEYDOWN, key=pygame.K_LEFT)
+        if player.moving_right:
+            pygame.event.post(newevent_right)
+        if player.moving_up:
+            pygame.event.post(newevent_up)
+        if player.moving_down:
+            pygame.event.post(newevent_down)
+        pygame.event.post(newevent)
+    if side == 2:
+        newevent = pygame.event.Event(
+            pygame.KEYDOWN, key=pygame.K_RIGHT)
+        if player.moving_up:
+            pygame.event.post(newevent_up)
+        if player.moving_left:
+            pygame.event.post(newevent_left)
+        if player.moving_down:
+            pygame.event.post(newevent_down)
+        pygame.event.post(newevent)
 
 
 def auto_moving_player(player, path):

@@ -21,19 +21,21 @@ class Game:
         for i in self.mobs:
             x = int(i.rect.centerx/40)
             y = int(i.rect.centery/40)
-            self.state[y][x] == 13
+            self.state[y][x] = 13
         x = int(self.player.rect.centerx/40)
         y = int(self.player.rect.centery/40)
+        self.player_x = x
+        self.player_y = y
         if self.state[y][x] == 9:
-            self.terminal == True
-        self.state[y][x] == 14
+            self.terminal = True
+        self.state[y][x] = 14
 
     def move(self, side):
         self.state = copy.deepcopy(self.map.tilemap1)
         for i in self.mobs:
             x = int(i.rect.centerx/40)
             y = int(i.rect.centery/40)
-            self.state[y][x] == 13
+            self.state[y][x] = 13
         x = int(self.player.rect.centerx/40)
         y = int(self.player.rect.centery/40)
         if side == 1 and self.state[y][x-1] != 1:
@@ -47,8 +49,8 @@ class Game:
         else:
             return False
         if self.state[y][x] == 9:
-            self.terminal == True
-        self.state[y][x] == 14
+            self.terminal = True
+        self.state[y][x] = 14
         self.player_x = x
         self.player_y = y
         return True

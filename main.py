@@ -31,7 +31,7 @@ class GauntletGame:
         self.doors = pygame.sprite.Group()
         self.lvl = 1
         self.minimax = Minimax(evaluation_function,
-                               result_function, max_depth=4)
+                               result_function, max_depth=3)
         pygame.display.set_caption("Gauntlet")
 
     def clean_after_dead(self):
@@ -58,7 +58,7 @@ class GauntletGame:
         self.player.rect.centery = self.maps.y*40 + 20
         self.player.x = self.maps.x*40 + 20
         self.player.y = self.maps.y*40 + 20
-        self.player.mobs_limit = 3
+        self.player.mobs_limit = 2
         self.player.mobs_random_limit = 1
 
     def new_game(self):
@@ -83,7 +83,7 @@ class GauntletGame:
                 self.first_draw = 1
             elif self.settings.game_status == 1:
                 k_a.update_screen(self.settings, self.screen,
-                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw)
+                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw, self.minimax)
                 if self.lvl == self.settings.current_lvl:
                     self.first_draw = 0
                 else:
