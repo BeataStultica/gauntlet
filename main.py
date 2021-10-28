@@ -1,4 +1,5 @@
 import pygame
+import time
 from path_find_algo import generate_map_dict
 
 from player import Hero
@@ -7,6 +8,7 @@ import key_actions as k_a
 from map import Map
 from minimax import Minimax
 from util_function import evaluation_function, result_function
+import csv
 
 
 class GauntletGame:
@@ -72,6 +74,7 @@ class GauntletGame:
 
     def run_game(self):
         self.first_draw = 1
+        timer = time.time()
         while True:
             self.clock.tick(15)
             k_a.check_game_event(self.settings, self.screen,
@@ -87,6 +90,11 @@ class GauntletGame:
                 if self.lvl == self.settings.current_lvl:
                     self.first_draw = 0
                 else:
+                    row = [str(self.player.hp), str(self.settings.score),
+                           str(time.time()-timer), "win"]
+                    timer = time.time()
+                    with open('data.csv', 'a') as f:
+                        f.write(','.join(row) + '\n')
                     self.first_draw = 1
                     self.lvl += 1
                     pygame.event.clear()
@@ -95,11 +103,21 @@ class GauntletGame:
                         self.settings.current_lvl = 1
                     self.clean_after_dead()
             elif self.settings.game_status == 2:
+                row = [str(self.player.hp), str(self.settings.score),
+                       str(time.time()-timer), "lose"]
+                timer = time.time()
+                with open('data.csv', 'a') as f:
+                    f.write(','.join(row) + '\n')
                 k_a.draw_end_screen(self.screen,  self.settings)
                 self.clean_after_dead()
                 self.new_game()
                 self.first_draw = 1
             elif self.settings.game_status == 3:
+                row = [str(self.player.hp), str(self.settings.score),
+                       str(time.time()-timer), "win"]
+                timer = time.time()
+                with open('data.csv', 'a') as f:
+                    f.write(','.join(row) + '\n')
                 k_a.draw_win_screen(self.screen,  self.settings)
                 self.clean_after_dead()
                 self.new_game()

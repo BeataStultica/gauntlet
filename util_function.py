@@ -32,7 +32,7 @@ def check_player_utility(game, settings):
                 player_coord = (k, n)
     # if player_turn == 0:
     for i in mobs_coord:
-        utility -= 0.3*((player_coord[1] - i[1]) **
+        utility -= 0.5*((player_coord[1] - i[1]) **
                         2 + (player_coord[0] - i[0])**2)**(1/2)
     # if player_turn == 1:
     if key_coord:
@@ -45,16 +45,16 @@ def check_player_utility(game, settings):
     for i in treas_coord:
         value = ((player_coord[1] - i[1]) **
                  2 + (player_coord[0] - i[0])**2)**(1/2)
-        if value <= 2:
-            utility += value
+        if value <= 3:
+            utility += 2*value
         # else:
         #    utility += -0.1*value
     if game.player.hp < 500:
         for i in food_coord:
             value = (((player_coord[1] - i[1]) **
                       2 + (player_coord[0] - i[0])**2)**(1/2))
-            if value <= 2:
-                utility += value
+            if value <= 3:
+                utility += 2*value
             # else:
             #    utility += -0.1*value
     return utility

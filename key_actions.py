@@ -39,10 +39,10 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
     elif event.key == pygame.K_RIGHT:
         player.moving_right = True
         if player.moving_up == True:
-            player.image = change_sprite('topright')
+            #player.image = change_sprite('topright')
             player.side = 'topright'
         elif player.moving_down == True:
-            player.image = change_sprite('bottomright')
+            #player.image = change_sprite('bottomright')
             player.side = 'bottomright'
         else:
             player.image = change_sprite('right')
@@ -50,10 +50,10 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
     elif event.key == pygame.K_LEFT:
         player.moving_left = True
         if player.moving_up == True:
-            player.image = change_sprite('topleft')
+            #player.image = change_sprite('topleft')
             player.side = 'topleft'
         elif player.moving_down == True:
-            player.image = change_sprite('bottomleft')
+            #player.image = change_sprite('bottomleft')
             player.side = 'bottomleft'
         else:
             player.image = change_sprite('left')
@@ -61,10 +61,10 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
     elif event.key == pygame.K_UP:
         player.moving_up = True
         if player.moving_right == True:
-            player.image = change_sprite('topright')
+            #player.image = change_sprite('topright')
             player.side = 'topright'
         elif player.moving_left == True:
-            player.image = change_sprite('topleft')
+            #player.image = change_sprite('topleft')
             player.side = 'topleft'
         else:
             player.image = change_sprite('up')
@@ -72,10 +72,10 @@ def check_keydown_events(event, ai_settings, screen, player, arrows, maps, mobs)
     elif event.key == pygame.K_DOWN:
         player.moving_down = True
         if player.moving_right == True:
-            player.image = change_sprite('bottomright')
+            #player.image = change_sprite('bottomright')
             player.side = 'bottomright'
         elif player.moving_left == True:
-            player.image = change_sprite('bottomleft')
+            #player.image = change_sprite('bottomleft')
             player.side = 'bottomleft'
         else:
             player.image = change_sprite('down')
