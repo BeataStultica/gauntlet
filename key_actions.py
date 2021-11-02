@@ -389,6 +389,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     foods.update()
     foods.draw(screen)
     player.hp -= 1
+    if player.hp <= 0:
+        ai_settings.game_status = 2
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)

@@ -1,6 +1,8 @@
 from path_find_algo import bfs, path_find
 import pygame
 import random
+import pickle
+import copy
 
 
 class Map:
@@ -20,13 +22,18 @@ class Map:
             self.textures_exit, (40, 40))
 
     def lvl_generate(self):
+        # with open('map.data', 'rb') as f:
+        #    a = pickle.load(f)
+        #    # print(a)
+        #self.tilemap1 = copy.deepcopy(a)
+
         x = random.randint(1, 21)
         y = random.randint(1, 13)
         self.x = x
         self.y = y
         self.key_amount = 1
-        treas_amount = random.randint(2, 6)
-        food_amount = random.randint(2, 6)
+        treas_amount = 11  # random.randint(2, 6)
+        food_amount = 0  # random.randint(2, 6)
         spawn_mob = random.randint(1, 2)
         exit_x = 0
         exit_y = 0
@@ -137,3 +144,6 @@ class Map:
 
         if len(bfs(graph_to_key, (self.y, self.x), key_coor)) == 0:
             self.lvl_generate()
+
+        # with open('map.data', 'wb') as f:
+        #    pickle.dump(self.tilemap1, f)

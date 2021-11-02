@@ -91,20 +91,23 @@ class GauntletGame:
                     self.first_draw = 0
                 else:
                     row = [str(self.player.hp), str(self.settings.score),
-                           str(time.time()-timer), "win"]
+                           str(int(time.time()-timer)), "win"]
                     timer = time.time()
                     with open('data.csv', 'a') as f:
                         f.write(','.join(row) + '\n')
                     self.first_draw = 1
                     self.lvl += 1
+                    self.settings.score = 0
+                    self.player.hp = 1000
                     pygame.event.clear()
                     if self.lvl == 7:
-                        self.settings.game_status = 3
+                        #self.settings.game_status = 3
                         self.settings.current_lvl = 1
+                        self.lvl = 1
                     self.clean_after_dead()
             elif self.settings.game_status == 2:
                 row = [str(self.player.hp), str(self.settings.score),
-                       str(time.time()-timer), "lose"]
+                       str(int(time.time()-timer)), "lose"]
                 timer = time.time()
                 with open('data.csv', 'a') as f:
                     f.write(','.join(row) + '\n')
@@ -114,7 +117,7 @@ class GauntletGame:
                 self.first_draw = 1
             elif self.settings.game_status == 3:
                 row = [str(self.player.hp), str(self.settings.score),
-                       str(time.time()-timer), "win"]
+                       str(int(time.time()-timer)), "win"]
                 timer = time.time()
                 with open('data.csv', 'a') as f:
                     f.write(','.join(row) + '\n')
