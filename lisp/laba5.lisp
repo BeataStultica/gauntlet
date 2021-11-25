@@ -5,17 +5,9 @@
 
 (defparameter *dataset* (cl-csv:read-csv #P"data.csv"))
 
-(defun math_expectation (x)
-  (defun sumup (x)
-    (if (equal x nil) 0
-        (+ (car x) (sumup (cdr x)))
-        )
-    )
-  (if
-   (equal x nil) 0
-   (/(sumup x) (list-length x))
-   )
-  )
+
+(defun square (x)
+  (* x x))
 
 (defun math_expectation2 (x)
   (defun sumup (x)
