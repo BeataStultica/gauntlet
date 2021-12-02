@@ -11,9 +11,6 @@ from treasure import Treasure
 from foods import Food
 from key import Key
 from door import Door
-import time
-from treeBuild import TreeBuilder, Node
-from Game import Game
 
 
 def change_sprite(side):
@@ -368,7 +365,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1, minimax=False, deep=3):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1):
     screen.fill([255, 0, 0])
     draw_lvl(walls, ai_settings, screen, maps,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
@@ -388,34 +385,14 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     treasure.draw(screen)
     foods.update()
     foods.draw(screen)
-    player.hp -= 1
+    player.hp -= 0.1
     if player.hp <= 0:
         ai_settings.game_status = 2
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
-    (graph_to_key, graph_to_exit, k_c, e_c) = path_find(maps)
-    ai_settings.key_dict = graph_to_key
-    ai_settings.exit_dict = graph_to_exit
-    ai_settings.exit_coord = e_c
-    ai_settings.key_coord = k_c
-    game = Game(maps, mobs, player)
-    game.update_map()
-    game.player_turn = 1
-    tree = TreeBuilder(maps, deep)
-    tree.set_root(Node(game))
-    tree.build()
 
-    v, side = minimax.alpha_beta_search(tree)
-
-    auto_moving(deep, side, ai_settings, v, player, maps)
     auto_fire(player, mobs_spawn, mobs, maps)
-
-    # for i in paths:
-    #    screen.blit(s, (i[1]*40, i[0]*40))
-    # for j in mobs:
-    #    for k in j.path:
-    #        screen.blit(s2, (k[1]*40, k[0]*40))
 
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)

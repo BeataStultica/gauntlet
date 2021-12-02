@@ -6,9 +6,6 @@ from player import Hero
 from settings import Settings
 import key_actions as k_a
 from map import Map
-from minimax import Minimax
-from util_function import evaluation_function, result_function
-import csv
 
 
 class GauntletGame:
@@ -32,8 +29,6 @@ class GauntletGame:
         self.keys = pygame.sprite.Group()
         self.doors = pygame.sprite.Group()
         self.lvl = 1
-        self.minimax = Minimax(evaluation_function,
-                               result_function, self.settings, max_depth=3)
         pygame.display.set_caption("Gauntlet")
 
     def clean_after_dead(self):
@@ -86,15 +81,10 @@ class GauntletGame:
                 self.first_draw = 1
             elif self.settings.game_status == 1:
                 k_a.update_screen(self.settings, self.screen,
-                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw, self.minimax, deep=3)
+                                  self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw)
                 if self.lvl == self.settings.current_lvl:
                     self.first_draw = 0
                 else:
-                    row = [str(self.player.hp), str(self.settings.score),
-                           str(int(time.time()-timer)), "win"]
-                    timer = time.time()
-                    with open('data.csv', 'a') as f:
-                        f.write(','.join(row) + '\n')
                     self.first_draw = 1
                     self.lvl += 1
                     self.settings.score = 0
@@ -106,21 +96,11 @@ class GauntletGame:
                         self.lvl = 1
                     self.clean_after_dead()
             elif self.settings.game_status == 2:
-                row = [str(self.player.hp), str(self.settings.score),
-                       str(int(time.time()-timer)), "lose"]
-                timer = time.time()
-                with open('data.csv', 'a') as f:
-                    f.write(','.join(row) + '\n')
                 k_a.draw_end_screen(self.screen,  self.settings)
                 self.clean_after_dead()
                 self.new_game()
                 self.first_draw = 1
             elif self.settings.game_status == 3:
-                row = [str(self.player.hp), str(self.settings.score),
-                       str(int(time.time()-timer)), "win"]
-                timer = time.time()
-                with open('data.csv', 'a') as f:
-                    f.write(','.join(row) + '\n')
                 k_a.draw_win_screen(self.screen,  self.settings)
                 self.clean_after_dead()
                 self.new_game()
