@@ -13,7 +13,7 @@ class Map:
          #   print(a)
         self.tilemap1 = copy.deepcopy(a)
         self.x = 3
-        self.y = 12
+        self.y = 13
         self.key_amount = 1
         self.levels = {1: self.tilemap1,
                        2: self.tilemap1, 3: self.tilemap1, 4: self.tilemap1, 5: self.tilemap1, 6: self.tilemap1, 7: 'win'}

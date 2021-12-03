@@ -367,7 +367,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
         player.speed_factor_collise[3] = 1
 
 
-def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, first_draw=1):
+def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls, mobs, mobs_spawn, exits, treasure, foods, keys, doors, Agent, first_draw=1):
     screen.fill([255, 0, 0])
     draw_lvl(walls, ai_settings, screen, maps,
              mobs_spawn, exits, treasure, foods, keys, doors, first_draw)
@@ -387,22 +387,37 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     treasure.draw(screen)
     foods.update()
     foods.draw(screen)
-    player.hp -= 0.1
+    player.hp -= 0.2
     if player.hp <= 0:
         ai_settings.game_status = 2
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
-    #frame = pygame.surfarray.array3d(pygame.display.get_surface())
-    #frame = cv2.transpose(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-    # self.config.frame_size = frame.shape[0], frame.shape[1], frame.shape[2]
-    #self.config.frame_size = (224, 224, 3)
-    #frame = cv2.resize(frame, self.config.frame_size[:2])
     auto_fire(player, mobs_spawn, mobs, maps)
-    move = Agent.getMove()
-    auto_moving_to(player, 1)
-    update_matrix(player, mobs, maps, ai_settings)
-    print(ai_settings.full_map)
+    if ai_settings.change_count == 0:
+        move = Agent.getMove(Agent.current_state, player)
+        ai_settings.change_count = 10
+    else:
+        move = ai_settings.move
+        ai_settings.change_count -= 1
+    print(Agent.params['eps'])
+    print(Agent.local_cnt)
+    auto_moving_to(player, move)
+    curr_state = update_matrix(player, mobs, maps, ai_settings)
+    (graph_to_key, graph_to_exit, k_c, e_c) = path_find(maps)
+    if maps.key_amount == 0:
+        paths = len(bfs(graph_to_exit, (int(player.rect.centery/40),
+                                        int(player.rect.centerx/40)), e_c))
+    else:
+        paths = len(bfs(graph_to_key, (int(player.rect.centery/40),
+                                       int(player.rect.centerx/40)), k_c))
+    if Agent.current_state == None:
+        Agent.current_state = curr_state
+    if ai_settings.game_status == 2:
+        Agent.final(curr_state, ai_settings.score, paths)
+    else:
+        Agent.observationFunction(curr_state, ai_settings.score, paths)
+    # print(ai_settings.full_map)
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
@@ -495,7 +510,7 @@ def auto_moving_to(player, side):
         pygame.KEYUP, key=pygame.K_RIGHT)
     newevent_up = pygame.event.Event(
         pygame.KEYUP, key=pygame.K_UP)
-    if side == 3:  # left right, top, bottom
+    if side == 2:  # left right, top, bottom
         newevent = pygame.event.Event(
             pygame.KEYDOWN, key=pygame.K_UP)
         if player.moving_right:
@@ -505,7 +520,7 @@ def auto_moving_to(player, side):
         if player.moving_down:
             pygame.event.post(newevent_down)
         pygame.event.post(newevent)
-    if side == 4:
+    if side == 3:
         newevent = pygame.event.Event(
             pygame.KEYDOWN, key=pygame.K_DOWN)
         if player.moving_right:
@@ -515,7 +530,7 @@ def auto_moving_to(player, side):
         if player.moving_up:
             pygame.event.post(newevent_up)
         pygame.event.post(newevent)
-    if side == 1:
+    if side == 0:
         newevent = pygame.event.Event(
             pygame.KEYDOWN, key=pygame.K_LEFT)
         if player.moving_right:
@@ -525,7 +540,7 @@ def auto_moving_to(player, side):
         if player.moving_down:
             pygame.event.post(newevent_down)
         pygame.event.post(newevent)
-    if side == 2:
+    if side == 1:
         newevent = pygame.event.Event(
             pygame.KEYDOWN, key=pygame.K_RIGHT)
         if player.moving_up:

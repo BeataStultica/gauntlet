@@ -19,8 +19,8 @@ from DQN import *
 params = {
     # Model backups
     'load_file': None,
-    'save_file': None,
-    'save_interval': 20,
+    'save_file': 'dqn_model',
+    'save_interval': 1000,
 
     # Training parameters
     'train_start': 500,    # Episodes before training starts
@@ -35,11 +35,11 @@ params = {
     # Epsilon value (epsilon-greedy)
     'eps': 1.0,             # Epsilon start value
     'eps_final': 0.1,       # Epsilon end value
-    'eps_step': 10000       # Epsilon steps between start and end (linear)
+    'eps_step': 1000       # Epsilon steps between start and end (linear)
 }
 
 
-class PacmanDQN():
+class AgentDQN():
     def __init__(self, args):
 
         print("Initialise DQN Agent")
@@ -51,8 +51,10 @@ class PacmanDQN():
         self.params['num_training'] = args['numTraining']
 
         # Start Tensorflow session
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
-        self.sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+        gpu_options = tf.compat.v1.GPUOptions(
+            per_process_gpu_memory_fraction=0.1)
+        self.sess = tf.compat.v1.Session(
+            config=tf.compat.v1.ConfigProto(gpu_options=gpu_options))
         self.qnet = DQN(self.params)
 
         # time started
@@ -84,14 +86,14 @@ class PacmanDQN():
         self.frame = 0
         self.current_state = None
 
-    def getMove(self):
+    def getMove(self, state, person):
         # Exploit / Explore
         if np.random.rand() > self.params['eps']:
             # Exploit action
             self.Q_pred = self.qnet.sess.run(
                 self.qnet.y,
                 feed_dict={self.qnet.x: np.reshape(self.current_state,
-                                                   (1, self.params['width'], self.params['height'], 6)),
+                                                   (1, self.params['width'], self.params['height'], 1)),
                            self.qnet.q_t: np.zeros(1),
                            self.qnet.actions: np.zeros((1, 4)),
                            self.qnet.terminals: np.zeros(1),
@@ -106,10 +108,23 @@ class PacmanDQN():
                 move = a_winner[0][0]
         else:
             # Random:
-            move = np.random.randint(0, 4)
+            awailable_move = []
+            x = int(person.rect.centerx/40)
+            y = int(person.rect.centery/40)
+            if state[y-1][x] != 1:
+                awailable_move.append(2)
+            if state[y+1][x] != 1:
+                awailable_move.append(3)
+            if state[y][x-1] != 1:
+                awailable_move.append(0)
+            if state[y][x+1] != 1:
+                awailable_move.append(1)
+            #move = np.random.randint(0, 4)
+            move = np.random.choice(awailable_move)
 
         # Save last_action
-        self.last_action = self.get_value(move)
+
+        self.last_action = move
 
         return move
 
@@ -125,13 +140,14 @@ class PacmanDQN():
             reward = self.current_score - self.last_score + \
                 (self.last_dist - self.curr_dist)*400
             self.last_score = self.current_score
-
+            # print('------')
+            # print(reward)
             if reward > 400:
-                self.last_reward = 800.    # Eat ghost   (Yum! Yum!)
+                self.last_reward = 8000.    # Eat ghost   (Yum! Yum!)
             elif reward > 0:
                 self.last_reward = 200.    # Eat food    (Yum!)
             elif reward < -300:
-                self.last_reward = -1000.  # Get eaten   (Ouch!) -500
+                self.last_reward = -8000.  # Get eaten   (Ouch!) -500
                 self.won = False
             elif reward < 0:
                 self.last_reward = -1.    # Punish time (Pff..)
@@ -159,6 +175,8 @@ class PacmanDQN():
 
         # Next
         self.local_cnt += 1
+        # print('++++lcnt')
+        # print(self.local_cnt)
         self.frame += 1
         self.params['eps'] = max(self.params['eps_final'],
                                  1.00 - float(self.cnt) / float(self.params['eps_step']))
@@ -203,12 +221,14 @@ class PacmanDQN():
                 batch_s.append(i[0])
                 batch_r.append(i[1])
                 batch_a.append(i[2])
-                batch_n.append(i[3])
+                batch_n.append(np.transpose(i[3]))
                 batch_t.append(i[4])
-            batch_s = np.array(batch_s)
+            batch_s = np.reshape(
+                batch_s[0], (1, self.params['width'], self.params['height'], 1))
             batch_r = np.array(batch_r)
             batch_a = self.get_onehot(np.array(batch_a))
-            batch_n = np.array(batch_n)
+            batch_n = np.reshape(
+                batch_n[0], (1, self.params['width'], self.params['height'], 1))
             batch_t = np.array(batch_t)
 
             self.cnt, self.cost_disp = self.qnet.train(
@@ -221,7 +241,7 @@ class PacmanDQN():
             actions_onehot[i][int(actions[i])] = 1
         return actions_onehot
 
-    def registerInitialState(self, state):  # inspects the starting state
+    def registerInitialState(self):  # inspects the starting state
 
         # Reset reward
         self.last_score = 0
@@ -241,7 +261,7 @@ class PacmanDQN():
         self.won = True
         self.Q_global = []
         self.delay = 0
-
+        self.cnt = self.qnet.sess.run(self.qnet.global_step)
         self.last_dist = 0
         self.curr_dist = 0
         self.current_score = 0

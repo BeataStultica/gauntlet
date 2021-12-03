@@ -1,14 +1,16 @@
 import numpy as np
-import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
+tf.disable_v2_behavior()
 
 
 class DQN:
     def __init__(self, params):
         self.params = params
+        tf.disable_eager_execution()
         self.network_name = 'qnet'
         self.sess = tf.Session()
         self.x = tf.placeholder('float', [
-                                None, params['width'], params['height'], 6], name=self.network_name + '_x')
+                                None, params['width'], params['height'], 1], name=self.network_name + '_x')
         self.q_t = tf.placeholder(
             'float', [None], name=self.network_name + '_q_t')
         self.actions = tf.placeholder(
@@ -18,10 +20,9 @@ class DQN:
         self.terminals = tf.placeholder(
             "float", [None], name=self.network_name + '_terminals')
 
-        # Layer 1 (Convolutional)
         layer_name = 'conv1'
         size = 3
-        channels = 6
+        channels = 1
         filters = 16
         stride = 1
         self.w1 = tf.Variable(tf.random_normal(
@@ -33,7 +34,6 @@ class DQN:
         self.o1 = tf.nn.relu(tf.add(
             self.c1, self.b1), name=self.network_name + '_'+layer_name+'_activations')
 
-        # Layer 2 (Convolutional)
         layer_name = 'conv2'
         size = 3
         channels = 16
@@ -50,7 +50,6 @@ class DQN:
 
         o2_shape = self.o2.get_shape().as_list()
 
-        # Layer 3 (Fully connected)
         layer_name = 'fc3'
         hiddens = 256
         dim = o2_shape[1]*o2_shape[2]*o2_shape[3]
@@ -65,7 +64,6 @@ class DQN:
         self.o3 = tf.nn.relu(
             self.ip3, name=self.network_name + '_'+layer_name+'_activations')
 
-        # Layer 4
         layer_name = 'fc4'
         hiddens = 4
         dim = 256
@@ -76,7 +74,6 @@ class DQN:
         self.y = tf.add(tf.matmul(self.o3, self.w4), self.b4,
                         name=self.network_name + '_'+layer_name+'_outputs')
 
-        # Q,Cost,Optimizer
         self.discount = tf.constant(self.params['discount'])
         self.yj = tf.add(self.rewards, tf.multiply(
             1.0-self.terminals, tf.multiply(self.discount, self.q_t)))
@@ -94,10 +91,10 @@ class DQN:
         # self.optim = tf.train.RMSPropOptimizer(self.params['lr'],self.params['rms_decay'],0.0,self.params['rms_eps']).minimize(self.cost,global_step=self.global_step)
         self.optim = tf.train.AdamOptimizer(self.params['lr']).minimize(
             self.cost, global_step=self.global_step)
+
         self.saver = tf.train.Saver(max_to_keep=0)
 
         self.sess.run(tf.global_variables_initializer())
-
         if self.params['load_file'] is not None:
             print('Loading checkpoint...')
             self.saver.restore(self.sess, self.params['load_file'])

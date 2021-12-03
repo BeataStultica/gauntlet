@@ -24,3 +24,5 @@ class Settings:
         self.last_v = [1, 2, 3]
         self.timer = 0
         self.full_map = None
+        self.move = None
+        self.change_count = 1
