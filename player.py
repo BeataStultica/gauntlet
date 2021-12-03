@@ -51,6 +51,8 @@ class Hero(pygame.sprite.Sprite):
                 self.speed_factor_collise[2]
         self.rect.centerx = self.x
         self.rect.centery = self.y
+        print(self.x)
+        print(self.y)
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)

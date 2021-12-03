@@ -7,9 +7,13 @@ import copy
 
 class Map:
     def __init__(self):
-        self.tilemap1 = [[1 for i in range(0, 23)] for j in range(0, 15)]
-        self.x = 1
-        self.y = 1
+        #self.tilemap1 = [[1 for i in range(0, 23)] for j in range(0, 15)]
+        with open('map.data', 'rb') as f:
+            a = pickle.load(f)
+         #   print(a)
+        self.tilemap1 = copy.deepcopy(a)
+        self.x = 3
+        self.y = 12
         self.key_amount = 1
         self.levels = {1: self.tilemap1,
                        2: self.tilemap1, 3: self.tilemap1, 4: self.tilemap1, 5: self.tilemap1, 6: self.tilemap1, 7: 'win'}
@@ -22,11 +26,12 @@ class Map:
             self.textures_exit, (40, 40))
 
     def lvl_generate(self):
-        # with open('map.data', 'rb') as f:
-        #    a = pickle.load(f)
-        #    # print(a)
-        #self.tilemap1 = copy.deepcopy(a)
 
+        with open('map.data', 'rb') as f:
+            a = pickle.load(f)
+        #    print(a)
+        self.tilemap1 = copy.deepcopy(a)
+    '''
         x = random.randint(1, 21)
         y = random.randint(1, 13)
         self.x = x
@@ -145,5 +150,6 @@ class Map:
         if len(bfs(graph_to_key, (self.y, self.x), key_coor)) == 0:
             self.lvl_generate()
 
-        # with open('map.data', 'wb') as f:
-        #    pickle.dump(self.tilemap1, f)
+        with open('map.data', 'wb') as f:
+            pickle.dump(self.tilemap1, f)
+        '''

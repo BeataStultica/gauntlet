@@ -23,3 +23,4 @@ class Settings:
         self.key_coord = None
         self.last_v = [1, 2, 3]
         self.timer = 0
+        self.full_map = None

@@ -11,6 +11,8 @@ from treasure import Treasure
 from foods import Food
 from key import Key
 from door import Door
+import cv2
+import copy
 
 
 def change_sprite(side):
@@ -391,9 +393,16 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     spawn_mob(maps, ai_settings, screen, mobs, player, mobs_spawn, arrows)
     mobs.update()
     mobs.draw(screen)
-
+    #frame = pygame.surfarray.array3d(pygame.display.get_surface())
+    #frame = cv2.transpose(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    # self.config.frame_size = frame.shape[0], frame.shape[1], frame.shape[2]
+    #self.config.frame_size = (224, 224, 3)
+    #frame = cv2.resize(frame, self.config.frame_size[:2])
     auto_fire(player, mobs_spawn, mobs, maps)
-
+    move = Agent.getMove()
+    auto_moving_to(player, 1)
+    update_matrix(player, mobs, maps, ai_settings)
+    print(ai_settings.full_map)
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
     update_arrows(arrows, ai_settings)
@@ -412,6 +421,17 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     draw_text(screen, 'Algorithm: '+"bfs",
               18, ai_settings.screen_width*0.90, 170)
     pygame.display.flip()
+
+
+def update_matrix(player, mobs, maps, ai_settings):
+    a = copy.deepcopy(maps.levels[ai_settings.current_lvl])
+    for i in mobs:
+        a[int(i.rect.centery/ai_settings.block_size)
+          ][int(i.rect.centerx/ai_settings.block_size)] = 11
+    a[int(player.rect.centery/ai_settings.block_size)
+      ][int(player.rect.centerx/ai_settings.block_size)] = 12
+    ai_settings.full_map = a
+    return a
 
 
 def auto_fire(player, spawn, mobs, maps):

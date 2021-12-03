@@ -69,7 +69,6 @@ class GauntletGame:
 
     def run_game(self):
         self.first_draw = 1
-        timer = time.time()
         while True:
             self.clock.tick(15)
             k_a.check_game_event(self.settings, self.screen,
@@ -105,6 +104,36 @@ class GauntletGame:
                 self.clean_after_dead()
                 self.new_game()
                 self.first_draw = 1
+
+    def test_game(self, Agent):
+        self.first_draw = 1
+        while True:
+            self.clock.tick(15)
+            k_a.check_game_event(self.settings, self.screen,
+                                 self.player, self.arrows, self.maps, self.mobs)
+
+            if self.settings.game_status == 1 or self.settings.game_status == 0:
+                agent = k_a.update_screen(self.settings, self.screen,
+                                          self.player, self.all_sprites, self.arrows, self.maps, self.walls, self.mobs, self.mobs_spawns, self.exits, self.treasure, self.foods, self.keys, self.doors, self.first_draw)
+                if self.lvl == self.settings.current_lvl:
+                    self.first_draw = 0
+                else:
+                    win = True
+                    score = self.settings.score
+                    self.settings.current_lvl = 1
+                    break
+            elif self.settings.game_status == 2:
+                win = False
+                score = self.settings.score
+                self.settings.score = 0
+                self.settings.current_lvl = 1
+                break
+            elif self.settings.game_status == 3:
+                win = True
+                score = self.settings.score
+                self.settings.current_lvl = 1
+                break
+        return (score, win), agent
 
 
 if __name__ == '__main__':
