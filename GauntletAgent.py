@@ -23,7 +23,7 @@ params = {
     'save_interval': 1000,
 
     # Training parameters
-    'train_start': 500,    # Episodes before training starts
+    'train_start': 200,    # Episodes before training starts
     'batch_size': 32,       # Replay memory batch size
     'mem_size': 100000,     # Replay memory size
 
@@ -143,15 +143,16 @@ class AgentDQN():
             # print('------')
             # print(reward)
             if reward > 400:
-                self.last_reward = 8000.    # Eat ghost   (Yum! Yum!)
+                self.last_reward = 8000.
             elif reward > 0:
-                self.last_reward = 200.    # Eat food    (Yum!)
+                self.last_reward = 200.
             elif reward < -300:
-                self.last_reward = -8000.  # Get eaten   (Ouch!) -500
+                self.last_reward = -8000.
                 self.won = False
             elif reward < 0:
-                self.last_reward = -1.    # Punish time (Pff..)
-
+                self.last_reward = -1.
+            else:
+                self.last_reward = -4000.
             if(self.terminal and self.won):
                 self.last_reward = 10000.
             self.ep_rew += self.last_reward
@@ -221,7 +222,7 @@ class AgentDQN():
                 batch_s.append(i[0])
                 batch_r.append(i[1])
                 batch_a.append(i[2])
-                batch_n.append(np.transpose(i[3]))
+                batch_n.append(i[3])
                 batch_t.append(i[4])
             batch_s = np.reshape(
                 batch_s[0], (1, self.params['width'], self.params['height'], 1))
@@ -266,6 +267,7 @@ class AgentDQN():
         self.curr_dist = 0
         self.current_score = 0
         self.terminal = False
+        self.local_cnt = 0
         # Next
         self.frame = 0
         self.numeps += 1
