@@ -4,10 +4,6 @@ import random
 import time
 import sys
 
-# Pacman game
-#from pacman import Directions
-#from game import Agent
-#import game
 
 # Replay memory
 from collections import deque
@@ -23,7 +19,7 @@ params = {
     'save_interval': 1000,
 
     # Training parameters
-    'train_start': 200,    # Episodes before training starts
+    'train_start': 50,    # Episodes before training starts
     'batch_size': 32,       # Replay memory batch size
     'mem_size': 100000,     # Replay memory size
 
@@ -35,7 +31,7 @@ params = {
     # Epsilon value (epsilon-greedy)
     'eps': 1.0,             # Epsilon start value
     'eps_final': 0.1,       # Epsilon end value
-    'eps_step': 1000       # Epsilon steps between start and end (linear)
+    'eps_step': 100       # Epsilon steps between start and end (linear)
 }
 
 
@@ -49,6 +45,9 @@ class AgentDQN():
         self.params['width'] = args['width']
         self.params['height'] = args['height']
         self.params['num_training'] = args['numTraining']
+        self.params['load_file'] = args['load_file']
+        self.params['eps'] = args['eps']
+        self.params['eps_step'] = args['eps_step']
 
         # Start Tensorflow session
         gpu_options = tf.compat.v1.GPUOptions(
@@ -63,10 +62,12 @@ class AgentDQN():
         # Q and cost
         self.Q_global = []
         self.cost_disp = 0
-
+        self.r = False
         # Stats
         self.cnt = self.qnet.sess.run(self.qnet.global_step)
         self.local_cnt = 0
+        self.maps = None
+        self.player = None
 
         self.numeps = 0
         self.last_score = 0
@@ -85,14 +86,13 @@ class AgentDQN():
         self.terminal = False
         self.frame = 0
         self.current_state = None
+        self.last_player_hp = 999
 
     def getMove(self, state, person):
-        # Exploit / Explore
-        if np.random.rand() > self.params['eps']:
-            # Exploit action
+        if np.random.rand() > self.params['eps'] and state is not None:
             self.Q_pred = self.qnet.sess.run(
                 self.qnet.y,
-                feed_dict={self.qnet.x: np.reshape(self.current_state,
+                feed_dict={self.qnet.x: np.reshape(state,
                                                    (1, self.params['width'], self.params['height'], 1)),
                            self.qnet.q_t: np.zeros(1),
                            self.qnet.actions: np.zeros((1, 4)),
@@ -101,77 +101,131 @@ class AgentDQN():
 
             self.Q_global.append(max(self.Q_pred))
             a_winner = np.argwhere(self.Q_pred == np.amax(self.Q_pred))
+            self.r = True
 
             if len(a_winner) > 1:
                 move = a_winner[np.random.randint(0, len(a_winner))][0]
+
             else:
                 move = a_winner[0][0]
         else:
-            # Random:
+            self.r = False
             awailable_move = []
             x = int(person.rect.centerx/40)
             y = int(person.rect.centery/40)
-            if state[y-1][x] != 1:
-                awailable_move.append(2)
-            if state[y+1][x] != 1:
-                awailable_move.append(3)
-            if state[y][x-1] != 1:
-                awailable_move.append(0)
-            if state[y][x+1] != 1:
-                awailable_move.append(1)
-            #move = np.random.randint(0, 4)
+            if state is not None:
+                if state[y-1][x] != 1:
+                    awailable_move.append(2)
+                if state[y+1][x] != 1:
+                    awailable_move.append(3)
+                if state[y][x-1] != 1:
+                    awailable_move.append(0)
+                if state[y][x+1] != 1:
+                    awailable_move.append(1)
+            else:
+                awailable_move = [0, 1, 2, 3]
             move = np.random.choice(awailable_move)
 
-        # Save last_action
-
         self.last_action = move
+        ac = {0: "left", 1: "right", 2: "top", 3: "bottom"}
+        if self.r:
+            print("Q :" + str(max(self.Q_pred)) +
+                  " | action: "+ac[self.last_action] + " | eps: " + str(self.params['eps']))
+        else:
+            print("Q : None | action: " +
+                  ac[self.last_action] + " | eps: " + str(self.params['eps']))
+        return self.last_action
 
-        return move
-
-    def observation_step(self, curr_state, curr_score, curr_dist):
-        if self.last_action is not None:
+    def observation_step(self, curr_state, curr_score, curr_dist, curr_player_hp):
+        if self.last_action is not None and self.current_state is not None:
             # Process current experience state
             self.last_state = np.copy(self.current_state)
-            self.current_state = curr_state
+            self.current_state = np.copy(curr_state)
+            # if curr_state == self.last_state:
+            #    print('+')
+            # else:
+            #    print('-')
             self.last_dist = self.curr_dist
             self.curr_dist = curr_dist
             # Process current experience reward
             self.current_score = curr_score
             reward = self.current_score - self.last_score + \
-                (self.last_dist - self.curr_dist)*400
+                (self.last_dist - self.curr_dist)*400 - \
+                (self.last_player_hp - curr_player_hp)*5
             self.last_score = self.current_score
-            # print('------')
-            # print(reward)
-            if reward > 400:
+            self.last_player_hp = curr_player_hp
+            # print('dist')
+            # print(self.last_dist)
+            # print(self.curr_dist)
+            if reward > 300:
                 self.last_reward = 8000.
             elif reward > 0:
                 self.last_reward = 200.
             elif reward < -300:
                 self.last_reward = -8000.
                 self.won = False
-            elif reward < 0:
-                self.last_reward = -1.
             else:
-                self.last_reward = -4000.
+                self.last_reward = -30000.
             if(self.terminal and self.won):
-                self.last_reward = 10000.
+                self.last_reward = 100000.
             self.ep_rew += self.last_reward
+            '''
+            for j in range(len(self.last_state)):
+                if 12 in self.last_state[j]:
+                    for k in range(len(self.last_state[j])):
+                        if self.last_state[j][k] == 12:
+                            x_p = k
+                    y_p = j
+                
+            # print(x_p)
+            # print(y_p)
+            flag = True
 
+            if self.current_state[y_p][x_p+1] == 12:
+                # print('+x')
+                # print(self.current_state[y_p][x_p+1])
+                move = 1
+            elif self.current_state[y_p][x_p-1] == 12:
+                # print('-x')
+                # print(self.current_state[y_p][x_p-1])
+                move = 0
+            elif self.current_state[y_p-1][x_p] == 12:
+                # print('-y')
+                # print(self.current_state[y_p-1][x_p])
+                move = 2
+            elif self.current_state[y_p+1][x_p] == 12:
+                # print('+y')
+                # print(self.current_state[y_p+1][x_p])
+                move = 3
+            else:
+                move = self.last_action
+            '''
             # Store last experience into memory
+
             experience = (self.last_state, float(self.last_reward),
                           self.last_action, self.current_state, self.terminal)
+            # print('start')
+            # print('--------')
+            # for i in self.last_state:
+            #    print(list(i))
+            # print('+++++++')
+            # for j in self.current_state:
+            #    print(list(j))
+            # print(self.last_action)
+            # print(move)
+            # print(self.last_reward)
             self.replay_mem.append(experience)
             if len(self.replay_mem) > self.params['mem_size']:
                 self.replay_mem.popleft()
 
-            # Save model
+                # Save model
             if(params['save_file']):
                 if self.local_cnt > self.params['train_start'] and self.local_cnt % self.params['save_interval'] == 0:
                     self.qnet.save_ckpt(
                         'saves/model-' + params['save_file'] + "_" + str(self.cnt) + '_' + str(self.numeps))
                     print('Model saved')
 
-            # Train
+                # Train
             self.train()
 
         # Next
@@ -182,31 +236,18 @@ class AgentDQN():
         self.params['eps'] = max(self.params['eps_final'],
                                  1.00 - float(self.cnt) / float(self.params['eps_step']))
 
-    def observationFunction(self, curr_state, curr_score, curr_dist):
+    def observationFunction(self, curr_state, curr_score, curr_dist, player_hp):
         # Do observation
         self.terminal = False
-        self.observation_step(curr_state, curr_score, curr_dist)
+        self.observation_step(curr_state, curr_score, curr_dist, player_hp)
 
-    def final(self, curr_state, curr_score, curr_dist):
+    def final(self, curr_state, curr_score, curr_dist, player_hp):
         # Next
         self.ep_rew += self.last_reward
 
         # Do observation
         self.terminal = True
-        self.observation_step(curr_state, curr_score, curr_dist)
-
-        # Print stats
-        log_file = open('./logs/'+str(self.general_record_time)+'-l-'+str(self.params['width'])+'-m-'+str(
-            self.params['height'])+'-x-'+str(self.params['num_training'])+'.log', 'a')
-        log_file.write("# %4d | steps: %5d | steps_t: %5d | t: %4f | r: %12f | e: %10f " %
-                       (self.numeps, self.local_cnt, self.cnt, time.time()-self.s, self.ep_rew, self.params['eps']))
-        log_file.write("| Q: %10f | won: %r \n" %
-                       ((max(self.Q_global, default=float('nan')), self.won)))
-        sys.stdout.write("# %4d | steps: %5d | steps_t: %5d | t: %4f | r: %12f | e: %10f " %
-                         (self.numeps, self.local_cnt, self.cnt, time.time()-self.s, self.ep_rew, self.params['eps']))
-        sys.stdout.write("| Q: %10f | won: %r \n" %
-                         ((max(self.Q_global, default=float('nan')), self.won)))
-        sys.stdout.flush()
+        self.observation_step(curr_state, curr_score, curr_dist, player_hp)
 
     def train(self):
         # Train
@@ -249,7 +290,7 @@ class AgentDQN():
         self.current_score = 0
         self.last_reward = 0.
         self.ep_rew = 0
-
+        self.s = time.time()
         # Reset state
         self.last_state = None
         self.current_state = None

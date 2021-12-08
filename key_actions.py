@@ -305,6 +305,7 @@ def object_hit(player, walls, mobs_spawn, mobs, ai_settings, exits, treasure, fo
     if next_lvl:
         next_lvl[0].kill()
         ai_settings.current_lvl += 1
+        ai_settings.game_status = 2
     treasure_find = pygame.sprite.spritecollide(player, treasure, False)
     for i in treasure_find:
         ai_settings.score += i.value
@@ -387,6 +388,8 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     treasure.draw(screen)
     foods.update()
     foods.draw(screen)
+    Agent.player = player
+    Agent.maps = maps
     player.hp -= 0.2
     if player.hp <= 0:
         ai_settings.game_status = 2
@@ -395,15 +398,18 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     mobs.draw(screen)
     auto_fire(player, mobs_spawn, mobs, maps)
     if ai_settings.change_count == 0:
-        move = Agent.getMove(Agent.current_state, player)
-        ai_settings.change_count = 10
+        curr_state = update_matrix(player, mobs, maps, ai_settings)
+        ai_settings.move = Agent.getMove(curr_state, player)
+
+        ai_settings.change_count = 8
     else:
-        move = ai_settings.move
         ai_settings.change_count -= 1
-    print(Agent.params['eps'])
-    print(Agent.local_cnt)
-    auto_moving_to(player, move)
-    curr_state = update_matrix(player, mobs, maps, ai_settings)
+    # print(Agent.params['eps'])
+    # print(Agent.local_cnt)
+    # if Agent.cnt > 500:
+    auto_moving_to(player, ai_settings.move)
+    # if ai_settings.change_count == 8:
+    #    curr_state = update_matrix(player, mobs, maps, ai_settings)
     (graph_to_key, graph_to_exit, k_c, e_c) = path_find(maps)
     if maps.key_amount == 0:
         paths = len(bfs(graph_to_exit, (int(player.rect.centery/40),
@@ -411,12 +417,14 @@ def update_screen(ai_settings, screen, player, all_sprites, arrows, maps, walls,
     else:
         paths = len(bfs(graph_to_key, (int(player.rect.centery/40),
                                        int(player.rect.centerx/40)), k_c))
-    if Agent.current_state == None:
-        Agent.current_state = curr_state
     if ai_settings.game_status == 2:
-        Agent.final(curr_state, ai_settings.score, paths)
-    else:
-        Agent.observationFunction(curr_state, ai_settings.score, paths)
+        curr_state = update_matrix(player, mobs, maps, ai_settings)
+        Agent.final(curr_state, ai_settings.score, paths, player.hp)
+    elif ai_settings.change_count == 8:
+        Agent.observationFunction(
+            curr_state, ai_settings.score, paths, player.hp)
+    if Agent.current_state is None and ai_settings.change_count == 8:
+        Agent.current_state = curr_state
     # print(ai_settings.full_map)
     object_hit(player, walls, mobs_spawn, mobs,
                ai_settings, exits, treasure, foods, keys, doors, maps)
@@ -446,6 +454,7 @@ def update_matrix(player, mobs, maps, ai_settings):
     a[int(player.rect.centery/ai_settings.block_size)
       ][int(player.rect.centerx/ai_settings.block_size)] = 12
     ai_settings.full_map = a
+    player.maps = maps
     return a
 
 
